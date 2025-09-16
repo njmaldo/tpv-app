@@ -1,0 +1,37 @@
+---
+
+---
+
+
+
+
+<div class="modal" id="tpv-modal" slot="modal" aria-hidden="true">
+  <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="tpv-modal-title">
+    <button class="modal__close" type="button" id="tpv-modal-close" aria-label="Cerrar">×</button>
+
+    <div class="modal__head">
+      <img id="tpv-modal-image" src="" alt="" />
+      <div>
+        <h3 id="tpv-modal-title">Producto</h3>
+        <p class="modal__price" id="tpv-modal-price">$0.00</p>
+      </div>
+    </div>
+
+    <div class="modal__body">
+      <label class="qty-label">
+        Cantidad
+        <div class="qty">
+          <button type="button" class="qty__btn" id="qty-dec">−</button>
+          <input type="number" id="qty-input" min="1" step="1" value="1" />
+          <button type="button" class="qty__btn" id="qty-inc">+</button>
+        </div>
+      </label>
+    </div>
+
+    <div class="modal__actions">
+      <button type="button" class="btn btn-muted" id="tpv-modal-cancel">Cancelar</button>
+      <button type="button" class="btn btn-primary" id="tpv-modal-add">Agregar</button>
+    </div>
+  </div>
+</div>
+

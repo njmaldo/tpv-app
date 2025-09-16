@@ -1,0 +1,173 @@
+<section class="compras-dashboard">
+  <!-- Encabezado -->
+  <header class="compras-header">
+    <h2>Dashboard de Compras</h2>
+    <p>Resumen general de las compras registradas</p>
+  </header>
+
+  <!-- Métricas -->
+  <div class="compras-metrics">
+    <div class="metric-card">
+      <h3>Total Compras</h3>
+      <p class="metric-value">$12,450</p>
+    </div>
+    <div class="metric-card">
+      <h3>Promedio</h3>
+      <p class="metric-value">$415</p>
+    </div>
+    <div class="metric-card">
+      <h3>Compras este mes</h3>
+      <p class="metric-value">32</p>
+    </div>
+  </div>
+
+  <!-- Gráfica (espacio placeholder) -->
+  <div class="compras-chart">
+    <h3>Histórico de Compras</h3>
+    <div class="chart-placeholder">[Aquí va la gráfica]</div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="compras-table">
+    <h3>Últimas Compras</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Fecha</th>
+          <th>Proveedor</th>
+          <th>Monto</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>#C001</td>
+          <td>01/09/2025</td>
+          <td>Harinas SA</td>
+          <td>$320</td>
+          <td class="status success">Pagado</td>
+        </tr>
+        <tr>
+          <td>#C002</td>
+          <td>03/09/2025</td>
+          <td>Lácteos SRL</td>
+          <td>$450</td>
+          <td class="status pending">Pendiente</td>
+        </tr>
+        <tr>
+          <td>#C003</td>
+          <td>05/09/2025</td>
+          <td>Aceites del Sur</td>
+          <td>$280</td>
+          <td class="status canceled">Cancelado</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<style>
+.compras-dashboard {
+  display: grid;
+  gap: 2rem;
+  padding: 2rem;
+  background: #f9fafb;
+  border-radius: 1rem;
+}
+
+/* Header */
+.compras-header h2 {
+  font-size: 1.8rem;
+  color: #0D1B2A;
+}
+.compras-header p {
+  color: #555;
+  font-size: 0.95rem;
+}
+
+/* Metrics */
+.compras-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.5rem;
+}
+.metric-card {
+  background: #fff;
+  padding: 1rem 1.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+.metric-card h3 {
+  font-size: 1rem;
+  color: #444;
+  margin-bottom: 0.5rem;
+}
+.metric-value {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #22C55E;
+}
+
+/* Chart */
+.compras-chart {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+.chart-placeholder {
+  background: #eef2f6;
+  border: 2px dashed #ccc;
+  border-radius: 0.5rem;
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #777;
+  font-size: 0.9rem;
+}
+
+/* Table */
+.compras-table {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  overflow-x: auto;
+}
+.compras-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.compras-table th,
+.compras-table td {
+  text-align: left;
+  padding: 0.75rem;
+  border-bottom: 1px solid #eee;
+}
+.compras-table th {
+  background: #f1f5f9;
+  font-size: 0.9rem;
+  color: #333;
+}
+.status {
+  font-weight: bold;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+}
+.status.success {
+  background: #dcfce7;
+  color: #166534;
+}
+.status.pending {
+  background: #fef9c3;
+  color: #854d0e;
+}
+.status.canceled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+</style>

@@ -1,0 +1,167 @@
+---
+---
+<div class="toolbar-container">
+  <div class="toolbar">
+    <a class="btn secondary" href="/" >
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M4 9h16"/></svg>
+      Home
+    </a>
+    <a href="/tpv" class="btn primary" type="button" >
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+      + TPV
+    </a>
+    
+    <div class="dropdown-container">
+      <button class="btn secondary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16h16"/><path d="M20 4 4 20"/></svg>
+        Administration
+      </button>
+      <div class="dropdown-menu">
+        <a href="/admin/products" class="dropdown-item">Products</a>
+        <a href="/admin/reportes" class="dropdown-item">Reports</a>
+        <a href="/admin/sales" class="dropdown-item">Sales</a>
+        <a href="/admin/compras" class="dropdown-item">Purchases</a>
+      </div>
+    </div>
+    
+    <button class="btn dark">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H4V4h16z"/><path d="M4 12h16"/></svg>
+      Export
+    </button>
+  </div>
+</div>
+
+<style>
+
+.toolbar-container {
+    display: flex;
+    justify-content: center;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+}
+.toolbar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1.5rem;
+    max-width: 1000px;
+    width: 100%;
+    padding: 1.5rem;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1.2rem; 
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  max-width: 250px; 
+  justify-content: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-decoration: none; 
+}
+
+.btn svg {
+  stroke-width: 2.5; 
+}
+
+.btn.primary {
+  color: #fff;
+  background-image: linear-gradient(135deg, #f7931e 0%, #f46214 100%);
+  box-shadow: 0 6px 15px rgba(244, 98, 20, 0.4);
+}
+
+.btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(244, 98, 20, 0.5);
+  background-image: linear-gradient(135deg, #f46214 0%, #f7931e 100%);
+}
+
+.btn.primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(244, 98, 20, 0.3);
+}
+
+.btn.secondary {
+  color: #4a4a4a;
+  background-color: #fff;
+  border: 1px solid #dcdcdc;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.btn.secondary:hover {
+  background-color: #f0f0f0;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn.dark {
+  color: #fff;
+  background-color: #333;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn.dark:hover {
+  background-color: #1a1a1a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+
+.dropdown-container {
+    position: relative;
+    display: inline-block;
+    justify-self: center;
+    width: 100%; 
+}
+
+.dropdown-container .btn {
+    display: flex;
+    width: 100%;
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #fff;
+  min-width: 200px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 0.5rem 0; 
+  z-index: 10;
+  margin-top: 2px;
+}
+.dropdown-container:hover .dropdown-menu {
+  display: block;
+}
+/* Estilos para los elementos del menú */
+.dropdown-item {
+  color: #4a4a4a;
+  padding: 0.75rem 1.5rem;
+  text-decoration: none;
+  display: block;
+  text-align: left;
+  transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+  background-color: #f0f0f0;
+}
+
+.dropdown-container:hover .dropdown-menu {
+  display: block;
+}
+
+@media (max-width: 600px) {
+  .toolbar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+</style>

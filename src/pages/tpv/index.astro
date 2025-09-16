@@ -1,0 +1,48 @@
+---
+import TPVLayout from "@/layouts/TPVLayout.astro";
+import tursoClient from "@/lib/turso";
+import type { BakeryItem, Category } from "@/interfaces/BakeryItem";
+import CategoryList from "@/components/tpv/CategoryList.astro";
+import ProductGrid from "@/components/tpv/ProductGrid.astro";
+import CartPanel from "@/components/tpv/CartPanel.astro";
+
+// Obtener los productos de la base de datos
+const result = await tursoClient.execute("SELECT * FROM bakery_items");
+const products: BakeryItem[] = result.rows.map((row) => ({
+  id: row.id as string,
+  name: row.name as string,
+  description: row.description as string,
+  price: Number(row.price),
+  imageUrl: row.imageUrl as string,
+  categoryId: row.categoryId as string,
+  isActive: Boolean(row.isActive),
+  createdAt: row.createdAt as string,
+  stock: Number(row.stock),
+}));
+
+// Obtener las categorías de la base de datos
+const resultCategories = await tursoClient.execute("SELECT * FROM categories");
+const categories: Category[] = resultCategories.rows.map((row) => ({
+  id: row.id as string,
+  name: row.name as string,
+}));
+---
+
+<TPVLayout title="TPV | Bakery">
+  <main  class="tpv-container">
+    <CategoryList categories={categories} />
+    <ProductGrid products={products} />
+    <CartPanel />
+  </main>
+</TPVLayout>
+
+<style>
+  .tpv-container {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    grid-template-rows: auto 1fr;
+    gap: var(--spacing-unit);
+    height: 80vh;
+  }
+</style>
+

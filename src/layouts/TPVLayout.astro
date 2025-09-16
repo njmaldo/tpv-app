@@ -1,0 +1,31 @@
+---
+import '../styles/tpv.css';
+import ToolBar from '@/components/toolBar/ToolBar.astro';
+
+interface Props {
+  title?: string;
+}
+
+const { title = ' bakery TPV' } = Astro.props;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <ToolBar />
+    <main >
+      <slot />
+    </main>
+    <div id="toast-container" class="toast-container"></div>
+    <footer class="footer">
+      <p>&copy; {new Date().getFullYear()} NX Bread & Coffee. All rights reserved.</p>
+    </footer>
+  </body>
+</html>
+

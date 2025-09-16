@@ -1,0 +1,123 @@
+---
+import type { Category } from "@/interfaces/BakeryItem";
+
+interface Props {
+  categories: Category[];
+}
+
+const { categories } = Astro.props;
+---
+<nav class="category-list" aria-label="Filtro de categorías">
+  <ul>
+    {categories.map(category => (
+      <li>
+        <button
+          type="button"
+          class="category-btn"
+          data-category-id={category.id}
+        >
+          {category.name}
+        </button>
+      </li>
+    ))}
+  </ul>
+
+  <div class="tpv-actions">
+    <button type="button" class="category-btn btn-close-shift">Cash Closing</button>
+  </div>
+</nav>
+
+ <style>
+  .category-list {
+    grid-column: 1 / 4;
+    grid-row: 1 / 1;
+    /* background-color: #fff; */
+    border-radius: 8px;
+    padding: var(--spacing-unit);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .category-list ul {
+    display: flex;
+    list-style: none;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
+.category-btn {
+  background-color: #f8f8f8; 
+  color: #555; 
+  font-size: 1rem;
+  padding: 0.75rem 1.5rem; 
+  border-radius: 8px;
+  border: 1px solid #ddd; 
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: all 0.3s ease; 
+  white-space: nowrap;
+   min-width: 160px;
+  text-align: center;
+}
+
+.category-btn:hover {
+  background-color: #fff;
+  border-color: #ccc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.category-btn.active {
+  background-color: #f7931e;
+  color: white;
+  font-weight: 600;
+  border-color: #f7931e;
+  box-shadow: 0 4px 12px rgba(247, 147, 30, 0.4);
+  transform: translateY(0);
+}
+.btn-close-shift {
+  background-color: transparent; 
+  /* background-color: #e11d48;  */
+  color: #555;
+  font-weight: 600;
+  /* border: none; */
+  border: 2px solid #e11d48; 
+  border-radius: 6px;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+  margin-right: 3rem;
+}
+
+.btn-close-shift:hover {
+  background-color: #be123c;
+}
+</style> 
+
+<script>
+  import { selectedCategory } from '@/stores/filters.ts';
+
+  const categoryList = document.querySelector('.category-list');
+  
+  if (categoryList) {
+    categoryList.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      const button = target.closest('.category-btn');
+
+      if (button) {
+        const htmlButton = button as HTMLElement;
+        const categoryId = htmlButton.dataset.categoryId;
+        
+        
+        if (categoryId !== undefined) {
+          selectedCategory.set(categoryId);
+        }
+
+        // Actualiza la clase 'active' para dar feedback visual
+        const currentActive = categoryList.querySelector('.active');
+        currentActive?.classList.remove('active');
+        htmlButton.classList.add('active');
+      }
+    });
+  }
+</script>
+

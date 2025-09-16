@@ -1,0 +1,85 @@
+---
+interface Props {
+  id: string;
+  title: string;
+}
+
+const { id, title } = Astro.props;
+---
+
+<div id={id} class="modal" aria-hidden="true">
+  <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby={`${id}-title`}>
+    <div class="modal-header">
+      <h3 id={`${id}-title`}>{title}</h3>
+      <button type="button" class="close-btn" aria-label="Cerrar" onclick={`closeModal('${id}')`}>&times;</button>
+    </div>
+    <!-- Contenido dinámico -->
+    <slot />
+
+  </div>
+</div>
+
+<script is:inline>
+function openModal(id) {
+  const modal = document.getElementById(id);
+  if (!modal) return;
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden", "false");
+}
+
+function closeModal(id) {
+  const modal = document.getElementById(id);
+  if (!modal) return;
+  modal.classList.remove("open");
+  modal.setAttribute("aria-hidden", "true");
+}
+
+window.openModal = openModal;
+window.closeModal = closeModal;
+
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("modal")) {
+    e.target.classList.remove("open");
+    e.target.setAttribute("aria-hidden", "true");
+  }
+});
+</script>
+
+<style>
+
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,.45);
+  z-index: 50;
+} 
+.modal.open { display: flex; }
+.modal-content {
+  background: white;
+  border-radius: 10px;
+  width: 420px;
+  max-width: 95%;
+  padding: 1rem;
+  box-shadow: 0 12px 30px rgba(0,0,0,.2);
+   max-height: 90vh;       /* 👈 límite de alto */
+  overflow-y: auto; 
+}
+
+.modal-header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.close-btn {
+  background:transparent;
+  border:none;
+  font-size:1.4rem;
+  cursor:pointer;
+}
+</style>
+
+
+

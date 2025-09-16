@@ -9,6 +9,18 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^5.12.8"
+    "@astrojs/cloudflare": "^12.6.6",
+    "@astrojs/db": "^0.17.1",
+    "@auth/core": "^0.37.4",
+    "astro": "^5.13.4",
+    "auth-astro": "^4.2.0",
+    "bcryptjs": "^3.0.2",
+    "dotenv": "^17.2.2",
+    "nanostores": "^1.0.1",
+    "sweetalert2": "^11.22.2",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.3"
   }
 }

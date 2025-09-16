@@ -1,0 +1,103 @@
+---
+interface Props {
+  placeholder?: string;
+  id?: string;
+}
+
+const { placeholder = "Search...", id = "search-input" } = Astro.props;
+---
+
+<input type="text" id={id} class="search-input" placeholder={placeholder} />
+<style>
+    .search-input {
+  width: 350px;
+  min-height: 26px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--color-primary, #22c55e);
+  box-shadow: 0 0 0 2px rgba(34,197,94,0.2);
+}
+
+</style>
+
+<script is:inline>
+
+  (function () {
+  // Inicializador: busca input y tbody y conecta el comportamiento
+  function initProductSearch() {
+    const input = document.getElementById("product-search");
+    const tbody = document.querySelector(".table-products tbody");
+
+    if (!input) {
+      console.warn("Product search: input #product-search no encontrado.");
+      return;
+    }
+    if (!tbody) {
+      console.warn("Product search: .table tbody no encontrado.");
+      return;
+    }
+
+    // Obtiene filas actuales y función para re-actualizarlas
+    let rows = Array.from(tbody.querySelectorAll("tr"));
+    const updateRows = () => { rows = Array.from(tbody.querySelectorAll("tr")); };
+
+    // Observer para re-actualizar filas cuando cambie el tbody (p. ej. renderizado dinámico)
+    const mo = new MutationObserver((mutations) => {
+      if (mutations.length) updateRows();
+    });
+    mo.observe(tbody, { childList: true });
+
+    const normalize = (s) => (s || "").replace(/\s+/g, " ").trim().toLowerCase();
+
+    // Filtrado en tiempo real
+    input.addEventListener("input", (e) => {
+      const q = normalize(e.target.value);
+      if (!q) {
+        rows.forEach(r => r.style.display = "");
+        return;
+      }
+      rows.forEach(r => {
+        const text = normalize(r.textContent);
+        r.style.display = text.includes(q) ? "" : "none";
+      });
+    });
+
+    // Atajos: Ctrl/Cmd+K para enfocar el input, "/" para enfocarlo rápidamente
+    window.addEventListener("keydown", (ev) => {
+      const active = document.activeElement;
+      const typing = active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.isContentEditable);
+      if (typing) return;
+
+      const isMac = navigator.platform.toUpperCase().includes("MAC");
+      // Ctrl/Cmd + K
+      if ((isMac ? ev.metaKey : ev.ctrlKey) && ev.key.toLowerCase() === "k") {
+        ev.preventDefault();
+        input.focus();
+        input.select();
+      }
+      // Slash quick-focus
+      if (ev.key === "/") {
+        ev.preventDefault();
+        input.focus();
+        input.select();
+      }
+    });
+
+    // útil para depuración
+    // console.log("Product search inicializado, filas:", rows.length);
+  }
+
+  // Ejecutar cuando el DOM esté listo
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initProductSearch);
+  } else {
+    initProductSearch();
+  }
+})();
+</script>

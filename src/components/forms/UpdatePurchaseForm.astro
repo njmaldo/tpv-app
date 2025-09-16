@@ -1,0 +1,98 @@
+---
+import type { Supplier } from "@/interfaces/Supplier";
+import { actions } from "astro:actions";
+
+interface Props {
+  suppliers: Supplier[];
+}
+const { suppliers } = Astro.props;
+---
+
+
+  <form method="post" action={actions.updatePurchase} class="form">
+    <input type="hidden" name="id" id="edit-id" />
+
+    <label>
+      Date
+      <input type="date" name="purchaseDate" id="edit-date" required />
+    </label>
+
+    <label>
+      Product Name
+      <input type="text" name="productName" id="edit-product" required />
+    </label>
+
+    <label>
+      Supplier
+      <select name="supplierId" id="edit-supplier" required>
+        <option value="">Select supplier</option>
+        {suppliers.map(({id,name}) => (
+          <option value={id}>{name}</option>
+        ))}
+      </select>
+    </label>
+
+    <div class="form-row">
+      <label>
+        Quantity
+        <input type="number" name="quantity" id="edit-qty" required />
+      </label>
+      <label>
+        Unit price
+        <input type="number" name="unitPrice" id="edit-price" required />
+      </label>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">Save changes</button>
+      <button type="button" class="btn ghost" onclick="closeModal('edit-purchase')">Cancel</button>
+    </div>
+  </form>
+
+  <style>
+.form{
+  display:flex;
+  flex-direction:column;
+  gap:0.6rem
+}
+.form label{
+  display:flex;
+  flex-direction:column;
+  font-size:0.9rem;
+  gap: 5px;
+}
+.form input, .form select{
+  padding:0.45rem;
+  border:1px solid #e6e9ee;
+  border-radius:6px;
+}
+.form-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:0.6rem;
+}
+.form-actions{
+  display:flex;
+  gap:0.5rem;
+  margin-top:0.5rem;
+}
+.btn{
+  padding:0.6rem 0.9rem;
+  border-radius:8px;
+  border:1px solid transparent;
+  cursor:pointer;
+}
+.btn-primary{
+  background:var(--accent);
+  color:#fff;
+}
+.btn.ghost{
+  background:transparent;
+  border:1px solid #666;
+}
+.link.small{
+  font-size:0.85rem;
+  color:var(--muted);
+}
+
+  </style>

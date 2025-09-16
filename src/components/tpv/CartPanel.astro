@@ -1,0 +1,565 @@
+---
+import ProductModal from "../ui/ProductModal.astro";
+---
+
+<aside class="tpv-cart" aria-label="Carrito">
+  <h2>Cash Register</h2>
+  <ul class="tpv-cart__list" id="tpv-cart-list" aria-live="polite"></ul>
+  <div class="tpv-cart__footer">
+    <div class="tpv-cart__total">
+      <span>Grand Total</span>
+      <strong id="tpv-cart-total">₱ 0.00</strong>
+    </div>
+    <!-- Botones de  -->
+    <div class="methods-grid">
+      <label class="payment-card">
+        <input type="radio" name="payment" data-method="cash" value="cash" />
+        <span class="icon">💵</span>
+        <span class="label">Cash</span>
+      </label>
+
+      <label class="payment-card">
+        <input
+          type="radio"
+          name="payment"
+          data-method="credit"
+          value="credit"
+        />
+        <span class="icon">💳</span>
+        <span class="label">Credit</span>
+      </label>
+
+      <label class="payment-card">
+        <input type="radio" name="payment" data-method="debit" value="debit" />
+        <span class="icon">💳</span>
+        <span class="label">Debit</span>
+      </label>
+
+      <label class="payment-card">
+        <input
+          type="radio"
+          name="payment"
+          data-method="transfer"
+          value="transfer"
+        />
+        <span class="icon">🏦</span>
+        <span class="label">Transfer</span>
+      </label>
+
+      <label class="payment-card">
+        <input type="radio" name="payment" data-method="gcash" value="gcash" />
+        <span class="icon">💳</span>
+        <span class="label">Gcash</span>
+      </label>
+    </div>
+    <!-- <div class="payment-methods">
+  <button class="payment-btn" data-method="cash">Cash</button>
+  <button class="payment-btn" data-method="credit">Credit</button>
+  <button class="payment-btn" data-method="debit">Debit</button>
+  <button class="payment-btn" data-method="transfer">Transfer</button>
+  <button class="payment-btn" data-method="gcash">Gcash</button>
+</div> -->
+    <!-- Botones de  -->
+    <div class="tpv-cart__actions">
+      <button type="button" class="btn btn-outline" id="tpv-clear-cart"
+        >Empty</button
+      >
+      <button type="button" class="btn btn-primary" id="tpv-checkout"
+        >Checkout</button
+      >
+    </div>
+  </div>
+</aside>
+<!-- Modal -->
+<div id="cashClosureModal" class="modal">
+  <div class="modal-content">
+    <h2>Cash Closing</h2>
+    <form id="cashClosureForm">
+      <div class="form-group">
+        <label for="declaredCash">Declared Cash (counted by cashier)</label>
+        <input type="number" id="declaredCash" name="declaredCash" step="0.01" required />
+      </div>
+      <div class="form-group">
+        <label for="notes">Notes</label>
+        <textarea id="notes" name="notes"></textarea>
+      </div>
+      <button type="submit">Confirm Closing</button>
+    </form>
+    <div id="cashClosureSummary" class="summary"></div>
+  </div>
+</div>
+<!-- Script Fucnonando -->
+<!-- <script>
+  import {cart,clearCart,removeItemFromCart,updateItemQuantity,} from "@/stores/cart";
+  import { actions } from "astro:actions";
+  import type { CartItem } from "@/stores/cart";
+  
+  const cartList = document.getElementById("tpv-cart-list");
+  const cartTotal = document.getElementById("tpv-cart-total");
+  const clearButton = document.getElementById("tpv-clear-cart");
+  const checkoutButton = document.getElementById("tpv-checkout");
+
+  function renderCart(currentCart: readonly CartItem[]) {
+    if (!cartList || !cartTotal) return;
+    cartList.innerHTML = "";
+    if (currentCart.length === 0) {
+      const emptyMessage = document.createElement("li");
+      emptyMessage.className = "tpv-cart__empty";
+      emptyMessage.textContent = "The cart is empty";
+      cartList.appendChild(emptyMessage);
+      cartTotal.textContent = "₱ 0.00";
+    } else {
+      let currentTotal = 0;
+      currentCart.forEach((item) => {
+        const li = document.createElement("li");
+        li.className = "tpv-cart__item";
+        li.innerHTML = `
+        <div class="tpv-cart__item-info">
+          <div class="product-details">
+              <span>${item.name}</span>
+              <strong class="price">₱ ${(item.price * item.quantity).toFixed(2)}</strong>
+            </div>
+          </div>
+          <div class="tpv-cart__item-controls">
+            <input
+              type="number"
+              class="quantity-input"
+              data-id="${item.id}"
+              value="${item.quantity}"
+              min="1"
+              aria-label="Cantidad de ${item.name}"
+            />
+            <button
+              type="button"
+              class="btn-remove"
+              data-id="${item.id}"
+              aria-label="Eliminar producto"
+              >
+              &times;
+            </button>
+          </div>
+          `;
+          cartList.appendChild(li);
+          currentTotal += item.price * item.quantity;
+        });
+        cartTotal.textContent = `₱ ${currentTotal.toFixed(2)}`;
+      }
+    }
+
+  cart.subscribe((newCart) => {
+    renderCart(newCart);
+  });
+  
+  if (cartList) {
+    cartList.addEventListener("change", (e) => {
+      const target = e.target as HTMLInputElement;
+      if (target.classList.contains("quantity-input")) {
+        const itemId = target.dataset.id;
+        const newQuantity = parseInt(target.value, 10);
+        if (itemId && !isNaN(newQuantity) && newQuantity > 0) {
+          updateItemQuantity(itemId, newQuantity);
+        }
+      }
+    });
+    cartList.addEventListener("click", (e) => {
+      const target = e.target as HTMLButtonElement;
+      if (target.classList.contains("btn-remove")) {
+        const itemId = target.dataset.id;
+        if (itemId) {
+          removeItemFromCart(itemId);
+        }
+      }
+    });
+  }
+
+  if (clearButton) {
+    clearButton.addEventListener("click", () => {
+      clearCart();
+    });
+  }
+
+  if (checkoutButton) {
+    checkoutButton.addEventListener("click", async () => {
+      const currentCart = cart.get();
+
+      if (currentCart.length === 0) {
+        alert("Your cart is empty. Please add products before checking out.");
+        return;
+      }
+
+      const items = currentCart.map((item) => ({
+        productId: item.id,
+        quantity: item.quantity,
+        price: item.price,
+      }));
+
+      const totalAmount = currentCart.reduce(
+        (acc, item) => acc + item.price * item.quantity,
+        0,
+      );
+
+      const result = await actions.addSale({ items, totalAmount });
+
+      if (result.data) {
+        if (result.data.success) {
+          clearCart();
+          alert(result.data.message);
+        } else {
+          alert(result.data.message);
+        }
+      } else if (result.error) {
+        const errorMessage =
+          result.error.message || "Error desconocido al procesar la venta.";
+          alert(errorMessage);
+          console.error("Error de acción:", result.error);
+      }
+    });
+  }
+
+  renderCart(cart.get());
+</script> -->
+<!-- Script Fucnonando -->
+
+<script>
+  import {
+    cart,
+    clearCart,
+    removeItemFromCart,
+    updateItemQuantity,
+  } from "@/stores/cart";
+  import { actions } from "astro:actions";
+  import type { CartItem } from "@/stores/cart";
+
+  const cartList = document.getElementById("tpv-cart-list");
+  const cartTotal = document.getElementById("tpv-cart-total");
+  const clearButton = document.getElementById("tpv-clear-cart");
+  const checkoutButton = document.getElementById("tpv-checkout");
+
+  function renderCart(currentCart: readonly CartItem[]) {
+    if (!cartList || !cartTotal) return;
+    cartList.innerHTML = "";
+    if (currentCart.length === 0) {
+      const emptyMessage = document.createElement("li");
+      emptyMessage.className = "tpv-cart__empty";
+      emptyMessage.textContent = "The cart is empty";
+      cartList.appendChild(emptyMessage);
+      cartTotal.textContent = "₱ 0.00";
+    } else {
+      let currentTotal = 0;
+      currentCart.forEach((item) => {
+        const li = document.createElement("li");
+        li.className = "tpv-cart__item";
+        li.innerHTML = `
+          <div class="tpv-cart__item-info">
+            <div class="product-details">
+              <span>${item.name}</span>
+              <strong class="price">₱ ${(item.price * item.quantity).toFixed(2)}</strong>
+            </div>
+          </div>
+          <div class="tpv-cart__item-controls">
+            <input
+              type="number"
+              class="quantity-input"
+              data-id="${item.id}"
+              value="${item.quantity}"
+              min="1"
+              aria-label="Cantidad de ${item.name}"
+            />
+            <button
+              type="button"
+              class="btn-remove"
+              data-id="${item.id}"
+              aria-label="Eliminar producto"
+            >
+              &times;
+            </button>
+          </div>
+        `;
+        cartList.appendChild(li);
+        currentTotal += item.price * item.quantity;
+      });
+      cartTotal.textContent = `₱ ${currentTotal.toFixed(2)}`;
+    }
+  }
+
+  cart.subscribe((newCart) => {
+    renderCart(newCart);
+  });
+
+  if (cartList) {
+    cartList.addEventListener("change", (e) => {
+      const target = e.target as HTMLInputElement;
+      if (target.classList.contains("quantity-input")) {
+        const itemId = target.dataset.id;
+        const newQuantity = parseInt(target.value, 10);
+        if (itemId && !isNaN(newQuantity) && newQuantity > 0) {
+          updateItemQuantity(itemId, newQuantity);
+        }
+      }
+    });
+    cartList.addEventListener("click", (e) => {
+      const target = e.target as HTMLButtonElement;
+      if (target.classList.contains("btn-remove")) {
+        const itemId = target.dataset.id;
+        if (itemId) {
+          removeItemFromCart(itemId);
+        }
+      }
+    });
+  }
+
+  if (clearButton) {
+    clearButton.addEventListener("click", () => {
+      clearCart();
+    });
+  }
+
+  if (checkoutButton) {
+    checkoutButton.addEventListener("click", async () => {
+      const currentCart = cart.get();
+
+      if (currentCart.length === 0) {
+        alert("Your cart is empty. Please add products before checking out.");
+        return;
+      }
+
+      // 🔹 Buscar el método de pago correcto (name="payment")
+      const selectedPayment = document.querySelector<HTMLInputElement>(
+        'input[name="payment"]:checked',
+      )?.value as "cash" | "credit" | "debit" | "transfer" | "gcash";
+
+      if (!selectedPayment) {
+        alert("Please select a payment method.");
+        return;
+      }
+
+      const items = currentCart.map((item) => ({
+        productId: item.id,
+        quantity: item.quantity,
+        price: item.price,
+      }));
+
+      const totalAmount = currentCart.reduce(
+        (acc, item) => acc + item.price * item.quantity,
+        0,
+      );
+
+      // 🔹 Enviar venta con método de pago
+      const result = await actions.addSale({
+        items,
+        totalAmount,
+        paymentMethod: selectedPayment,
+      });
+      if (result.data) {
+        if (result.data.success) {
+          clearCart();
+          showToast(result.data.message, "success");
+        } else {
+          showToast(result.data.message, "error");
+        }
+      } else if (result.error) {
+        const errorMessage =
+          result.error.message || "Error desconocido al procesar la venta.";
+        showToast(errorMessage, "error");
+        console.error("Error de acción:", result.error);
+      }
+    });
+  }
+
+  renderCart(cart.get());
+
+  // Cierre de caja
+document.addEventListener("DOMContentLoaded", () => {
+  const closeShiftBtn = document.querySelector<HTMLButtonElement>(".btn-close-shift");
+  const modal = document.getElementById("cashClosureModal") as HTMLElement;
+  const summary = document.getElementById("cashClosureSummary") as HTMLElement;
+
+  if (!closeShiftBtn || !modal || !summary) return;
+
+  closeShiftBtn.addEventListener("click", async () => {
+    modal.style.display = "block";
+
+    try {
+      // 🔹 llamamos al action que devuelve los totales
+      const result = await actions.getSalesSummary();
+
+      if (result.data?.success && result.data.data) {
+        const d = result.data.data;
+
+        summary.innerHTML = `
+          <p><strong>Total Cash:</strong> ₱ ${d.totalCash.toFixed(2)}</p>
+          <p><strong>Total Credit:</strong> ₱ ${d.totalCredit.toFixed(2)}</p>
+          <p><strong>Total Debit:</strong> ₱ ${d.totalDebit.toFixed(2)}</p>
+          <p><strong>Total Transfer:</strong> ₱ ${d.totalTransfer.toFixed(2)}</p>
+          <p><strong>Total GCash:</strong> ₱ ${d.totalGcash.toFixed(2)}</p>
+          <hr>
+          <p><strong>Total Sales:</strong> ₱ ${d.totalSales.toFixed(2)}</p>
+        `;
+      } else {
+        summary.innerHTML = `<p style="color:red;">❌ No se pudo cargar el resumen de ventas.</p>`;
+      }
+    } catch (e) {
+      console.error("❌ Error cargando resumen:", e);
+      summary.innerHTML = `<p style="color:red;">Error al consultar ventas.</p>`;
+    }
+  });
+});
+
+// const btnCloseShift = document.querySelector(".btn-close-shift");
+// const modal = document.getElementById("cashClosureModal");
+// const form = document.getElementById("cashClosureForm") as HTMLFormElement;
+// const summary = document.getElementById("cashClosureSummary");
+
+// if (btnCloseShift && modal && form) {
+//   btnCloseShift.addEventListener("click", () => {
+//     modal.classList.add("open");
+//   });
+
+//   form.addEventListener("submit", async (e) => {
+//     e.preventDefault();
+
+//     const declaredCash = parseFloat(
+//       (document.getElementById("declaredCash") as HTMLInputElement).value
+//     );
+//     const notes = (document.getElementById("notes") as HTMLTextAreaElement).value;
+
+//     const result = await actions.addCashClosure({
+//       shift: "Morning Shift", // aquí podrías usar turno real
+//       userId: "1",            // TODO: tomar user logueado
+//       declaredCash,
+//       notes,
+//     });
+
+//     if (result.data?.success && result.data.data) {
+//       const d = result.data.data;
+//       summary!.innerHTML = `
+//         <p><strong>Total Cash (system):</strong> ₱ ${d.totalCash.toFixed(2)}</p>
+//         <p><strong>Declared Cash:</strong> ₱ ${d.declaredCash.toFixed(2)}</p>
+//         <p><strong>Difference:</strong> ₱ ${d.diff.toFixed(2)}</p>
+//         <p><strong>Total Sales:</strong> ₱ ${d.totalSales.toFixed(2)}</p>
+//       `;
+//       form.reset();
+//     } else {
+//       summary!.innerHTML = `<p style="color:red;">❌ ${result.error?.message || result.data?.message}</p>`;
+//     }
+//   });
+// }
+
+// const closeShiftBtn = document.querySelector<HTMLButtonElement>(".btn-close-shift");
+
+// if (closeShiftBtn) {
+//   closeShiftBtn.addEventListener("click", async () => {
+//     // 🔹 Datos básicos (en real deberían venir de DB)
+//     const payload = {
+//       shift: "Morning",
+//       userId: "user-001",
+//       startTime: Date.now() - 4 * 60 * 60 * 1000, // hace 4h
+//       endTime: Date.now(),
+//       totalCash: 150.75,
+//       totalCredit: 200,
+//       totalDebit: 50.25,
+//       totalTransfer: 100,
+//       totalGcash: 80,
+//       totalSales: 581,
+//       declaredCash: 150,
+//       diff: -0.75,
+//       notes: "Cierre manual de prueba",
+//     };
+
+//     const result = await actions.addCashClosure(payload);
+
+//     if (result.data?.success) {
+//       showToast("✅ Cierre de caja registrado con éxito");
+//     } else {
+//       showToast("❌ Error al registrar el cierre");
+//     }
+//   });
+// }
+
+  
+  // Toast Notification
+  function showToast(message: string, type: "success" | "error" = "success") {
+    const container = document.getElementById("toast-container");
+    if (!container) return;
+
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+
+    container.appendChild(toast);
+
+    // Remover después de la animación
+    setTimeout(() => {
+      toast.remove();
+    }, 4000);
+  }
+</script>
+
+<style>
+  .methods-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10px, 1fr));
+    gap: 0.3rem;
+    margin-bottom: 1rem;
+  }
+
+  .payment-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    text-align: center;
+    padding: 0.75rem;
+    border: 2px solid transparent;
+    border-radius: 0.6rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    background: #fff;
+  }
+
+  .payment-card .icon {
+    font-size: 2rem; /* tamaño del emoji */
+    /* margin-bottom: 0.25rem; */
+  }
+
+  .payment-card .label {
+    font-size: 0.85rem;
+    color: #1b263b;
+  }
+
+  .payment-card input[type="radio"] {
+    display: none;
+  }
+
+  /* Cuando el radio está seleccionado → aplicar highlight al label */
+  .payment-card input:checked + .icon,
+  .payment-card input:checked + .icon + .label {
+    color: #22c55e; /* tu color de branding */
+    font-weight: bold;
+  }
+
+  .payment-card input:checked ~ .icon,
+  .payment-card input:checked ~ .label {
+    transform: scale(1.05);
+  }
+
+  /* Highlight en todo el card */
+  .payment-card input:checked ~ .icon,
+  .payment-card input:checked ~ .label,
+  .payment-card input:checked {
+    /* no hace falta el input acá, solo los hermanos */
+  }
+
+  .payment-card:has(input:checked) {
+    border-color: #22c55e;
+    background: rgba(34, 197, 94, 0.1);
+  }
+  /* efecto de selección (cambia color del icono y label) */
+  .payment-card input[type="radio"]:checked + .icon,
+  .payment-card input[type="radio"]:checked + .icon + .label {
+    color: #22c55e;
+    font-weight: 600;
+  }
+
+
+</style>

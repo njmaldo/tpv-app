@@ -1,0 +1,332 @@
+---
+import {
+  getDailySales,
+  getInventoryStats,
+  getInventoryValue,
+  getLastMonthInventoryValue,
+  getLowStock,
+  getMonthlySales,
+} from "@/lib/reportes";
+
+const { totalHoy } = await getDailySales();
+const { totalMes } = await getMonthlySales();
+const lowStock = await getLowStock();
+const { totalValue } = await getInventoryValue();
+const { totalValue: lastMonthValue } = await getLastMonthInventoryValue();
+const { totalUnits, avgPrice } = await getInventoryStats();
+
+// calcular variación %
+let variation = 0;
+if (lastMonthValue > 0) {
+  variation = ((totalValue - lastMonthValue) / lastMonthValue) * 100;
+}
+---
+
+<section class="reportes">
+  <h2>📊 Reports</h2>
+
+  <nav class="reportes-nav">
+    <button class="tab-btn active" data-tab="ventas">Sales</button>
+    <button class="tab-btn" data-tab="stock">Stock</button>
+    <button class="tab-btn" data-tab="compras">Purchases</button>
+  </nav>
+
+  <div id="reportes-content" class="reportes-content">
+    <div class="tab-content active" id="ventas">
+      <h3>Sales Overview</h3>
+      <div class="ventas-grid">
+        <div class="reporte-card">
+          <h3> 📅 Today</h3>
+          <p>${totalHoy}</p>
+        </div>
+        <div class="reporte-card">
+          <h3> 🗓️ This Month</h3>
+          <p>${totalMes}</p>
+        </div>
+        <div class="reporte-card">
+          <h3>💰 Inventory Value</h3>
+          <p>💵  ₱ {totalValue.toFixed(2)}</p>
+
+          <small class={variation >= 0 ? "positive" : "negative"}>
+            {variation >= 0 ? "⬆" : "⬇"}
+            {variation.toFixed(1)}% vs last month
+          </small>
+
+          <p>📦 <small>items in stock:</small> {totalUnits} </p>
+          <p>⚖️ <small>Avg. unit price:</small> ₱{avgPrice.toFixed(2)}</p>
+    </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="stock">
+      <h3>Stock Status</h3>
+      <div class="reporte-card">
+        {
+          lowStock.length > 0 ? (
+            <ul>
+              {lowStock.map((p) => (
+                <li>
+                  {p.name}: {p.stock} units
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>✅ All stock is fine.</p>
+          )
+        }
+      </div>
+    </div>
+    <div class="tab-content" id="compras">
+      <h3>Registered purchases</h3>
+      <div class="reporte-card">
+        <p>No purchases yet.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .reportes {
+  padding-inline: 2rem;
+  background-color: #f8f9fa;
+  padding-top: 0.5rem;
+}
+
+.reportes h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  color: #0D1B2A;
+}
+
+/* --- Navegación Tabs --- */
+.reportes-nav {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  background: #E5E7EB;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background 0.3s, color 0.3s;
+}
+
+.tab-btn.active {
+  background: #0D1B2A;
+  color: white;
+}
+
+.tab-btn:hover {
+  background: #1B263B;
+  color: white;
+}
+
+/* --- Contenido Tabs --- */
+.tab-content {
+  display: none;
+}
+.tab-content.active {
+  display: block;
+}
+
+/* --- Grid de métricas --- */
+.ventas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.2rem;
+  margin-top: 1rem;
+}
+
+.reporte-card {
+  background: #f2f2f2;
+  border-radius: 0.8rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  justify-content: center;
+}
+
+/* --- Jerarquía de texto --- */
+.reporte-card h3 {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #666;
+  margin: 0.2rem 0;
+}
+
+.reporte-card p {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0;
+  color: #0D1B2A;
+}
+
+.reporte-card small {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Badge de comparativa */
+.positive {
+  color: #22C55E;
+}
+
+.negative {
+  color: #EF4444;
+}
+
+/* --- Sección Stock y Compras --- */
+#stock ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#stock li {
+  font-size: 0.95rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+#stock li:last-child {
+  border-bottom: none;
+}
+
+#compras p {
+  color: #666;
+  font-size: 1rem;
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  .ventas-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+</style>
+  <!-- <style>
+    .reportes {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 1.5rem;
+      background: #f9fafb;
+      border-radius: 1rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+      font-family: system-ui, sans-serif;
+    }
+
+    .reportes h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      color: #0d1b2a;
+    }
+
+    /* Tabs */
+    .reportes-nav {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border: 2px solid transparent;
+      background: #e5e7eb;
+      border-radius: 0.5rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      background: #d1d5db;
+    }
+
+    .tab-btn.active {
+      background: #0d1b2a;
+      color: #fff;
+      border-color: #0d1b2a;
+    }
+
+    /* Tab content */
+    .reportes-content {
+      margin-top: 1rem;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Cards */
+    .reporte-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.75rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+
+    .reporte-card p {
+      font-size: 1rem;
+      color: #1f2937;
+    }
+
+    /* Grid for sales cards */
+    #ventas .reporte-card {
+      margin: 0;
+    }
+
+    #ventas .ventas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+  </style> -->
+
+  <script is:inline>
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((b) => b.classList.remove("active"));
+        document
+          .querySelectorAll(".tab-content")
+          .forEach((c) => c.classList.remove("active"));
+
+        btn.classList.add("active");
+        const tab = btn.dataset.tab;
+        document.getElementById(tab).classList.add("active");
+      });
+    });
+    // Conectar los reportes con los botones
+    document.addEventListener("DOMContentLoaded", () => {
+      const buttons = document.querySelectorAll(".tab-btn");
+      const contents = document.querySelectorAll(".tab-content");
+      buttons.forEach((btn) =>
+        btn.addEventListener("click", () => {
+          buttons.forEach((b) => b.classList.remove("active"));
+          contents.forEach((c) => c.classList.remove("active"));
+          btn.classList.add("active");
+          document.getElementById(btn.dataset.tab).classList.add("active");
+        }),
+      );
+    });
+  </script>
+

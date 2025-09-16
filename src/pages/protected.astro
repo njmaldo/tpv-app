@@ -1,0 +1,86 @@
+---
+import MainLayout from '@/layouts/MainLayout.astro';
+import { actions } from 'astro:actions';
+import tursoClient from "../lib/turso";
+import { getSession } from 'auth-astro/server';
+
+const session = await getSession(Astro.request);
+const { user } = session ?? {};
+
+interface BakeryItem {
+	id: string;
+	name: string;
+	description: string | null;
+	price: number;
+	imageUrl: string | null;
+	createdAt: string;
+}
+
+const result = Astro.getActionResult(actions.addBakeryItem);
+
+
+let bakeryItems: BakeryItem[] = [];
+let error: string | null = null;
+
+try {
+	const rs = await tursoClient.execute("SELECT * FROM bakery_items");
+	bakeryItems = rs.rows.map((row) => ({
+		id: row.id as string,
+		name: row.name as string,
+		description: row.description as string | null,
+		price: row.price as number,
+		imageUrl: row.imageUrl as string | null,
+		createdAt: row.createdAt as string,
+	}));
+} catch (e) {
+	console.error("Error al obtener productos de Turso:", e);
+	error = "Error al cargar los productos de la panadería.";
+}
+---
+
+<MainLayout title="NX Bread & Coffee">
+  <div class="container">
+    <pre>
+      <code>
+        {JSON.stringify(user, null,2)}
+      </code>
+    </pre>
+    <main class="main-content">
+      <section class="add-product-section">
+        <h2 class="section-title">Add New Product</h2>
+        <form method="POST" action={actions.addBakeryItem} id="addProductForm" class="add-product-form">
+          <div class="form-group">
+            <label for="name" class="form-label">Product Name:</label>
+            <input type="text" id="name" name="name" required class="form-input" />
+          </div>
+          <div class="form-group">
+            <label for="description" class="form-label">Description:</label>
+            <textarea id="description" name="description" class="form-textarea"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="price" class="form-label">Price:</label>
+            <input type="number" id="price" name="price" step="0.01" required class="form-input" />
+          </div>
+          <div class="form-group">
+            <label for="imageUrl" class="form-label">Image URL:</label>
+            <input type="url" id="imageUrl" name="imageUrl" class="form-input" />
+          </div>
+          <button type="submit" class="submit-button">Add Product</button>
+          <div id="formMessage" class="form-message"></div>
+        </form>
+
+        {result?.data && (
+          <p class="form-message success">
+            ✅ {result.data.message || "Producto añadido con éxito."}
+          </p>
+        )}
+        {result && !result.data && (
+          <p class="form-message error">
+            ❌ {result.error || "Error al añadir el producto."}
+          </p>
+        )}
+      </section>
+    </main>
+
+  </div>
+</MainLayout>
