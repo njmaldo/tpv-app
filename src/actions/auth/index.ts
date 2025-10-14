@@ -1,3 +1,3 @@
-export * from './login.action';
-export * from './logout.action';
-export * from './register.action';
+export * from './login';
+export * from './logout';
+export * from './register';

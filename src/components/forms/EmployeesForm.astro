@@ -1,0 +1,169 @@
+---
+import { actions } from "astro:actions";
+import type { Employee } from "@/interfaces/Employee";
+
+interface Props { 
+    employee?: Employee | null; 
+}
+const { employee } = Astro.props;
+const isEdit = !!employee;
+---
+
+<form action={isEdit ? actions.updateEmployee : actions.createEmployee} method="post" class="employee-form">
+  {isEdit && <input type="hidden" name="id" value={employee.id} />}
+
+  <div class="form-group">
+    <label for="name">Name</label>
+    <input type="text" id="name" name="name" value={employee?.name || ""} required />
+  </div>
+
+  <div class="form-group">
+    <label for="lastName">Last Name</label>
+    <input type="text" id="lastName" name="lastName" value={employee?.lastName || ""} required />
+  </div>
+
+  <div class="form-group">
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" value={employee?.email || ""} required />
+  </div>
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" minlength="6" required />
+    </div>
+
+  <div class="form-group">
+    <label for="birthDate">Birthdate</label>
+    <input type="date" id="birthDate" name="birthDate" value={employee?.birthDate || ""} />
+  </div>
+
+  <div class="form-group">
+    <label for="age">Age</label>
+    <input type="number" id="age" name="age" value={employee?.age || ""} min="16" max="100" />
+  </div>
+
+  <div class="form-group">
+    <label for="shift">Shift</label>
+    <select id="shift" name="shift">
+      <option value="">-- Seleccionar --</option>
+      <option value="morning" selected={employee?.shift === "morning"}>Morning</option>
+      <option value="evening" selected={employee?.shift === "evening"}>Evening</option>
+      <option value="night" selected={employee?.shift === "night"}>Night</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="roleId">Role</label>
+    <select id="roleId" name="roleId" required>
+      <option value="user" selected={employee?.roleId === "user"}>User</option>
+      <option value="admin" selected={employee?.roleId === "admin"}>Administrator</option>
+    </select>
+  </div>
+
+  <div class="form-group checkbox">
+    <label>
+      <input type="checkbox" name="isActive" value="1" checked={Boolean(employee?.isActive ?? true)} />
+      Activo
+    </label>
+    <input type="hidden" name="isActive" value="0"/>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">{isEdit ? "Actualizar" : "Crear"}</button>
+    <button type="button" class="btn btn-secondary" onclick="closeModal('employeeModal')">Cancel</button>
+  </div>
+</form>
+
+
+<style>
+  .employee-form {
+  display: grid;
+  gap: 0.5rem;
+  background: #ffffff;
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.employee-form .form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.employee-form label {
+  font-weight: 500;
+  color: #0D1B2A;
+  font-size: 0.95rem;
+}
+
+.employee-form input[type="text"],
+.employee-form input[type="email"],
+.employee-form input[type="password"],
+.employee-form input[type="date"],
+.employee-form input[type="number"],
+.employee-form select {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.employee-form input:focus,
+.employee-form select:focus {
+  border-color: #22C55E;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25);
+}
+
+/* Checkbox */
+.employee-form .form-group.checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.employee-form .form-group.checkbox label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  color: #0D1B2A;
+}
+
+/* Actions (buttons) */
+.employee-form .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.employee-form .btn-secondary {
+  color: #0D1B2A;
+  border-radius: 5px;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.employee-form .btn-secondary:hover {
+  background: #cbd5e1;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .employee-form {
+    padding: 1.5rem;
+  }
+  
+  .employee-form .form-actions {
+    flex-direction: column;
+  }
+
+  .employee-form .btn {
+    width: 100%;
+  }
+}
+
+</style>

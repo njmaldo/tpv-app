@@ -1,12 +1,11 @@
 ---
-import {
-  getDailySales,
-  getInventoryStats,
-  getInventoryValue,
-  getLastMonthInventoryValue,
-  getLowStock,
-  getMonthlySales,
-} from "@/lib/reportes";
+import { getAveragePurchase, getMonthlyPurchasesTotal, getMonthlyPurchasesTrend, 
+         getPurchasesCount, 
+         getTopSuppliers} from "@/lib/compras";
+import {getDailySales,getDailySalesSeries,getInventoryStats,getInventoryValue,
+        getLastMonthInventoryValue,getLowStock,getLowStockSeries,getMonthlyFinance,
+        getMonthlyFinanceTrend,getMonthlySales,getMonthlySalesSeries,
+        getTotalsByPeriod,} from "@/lib/reportes";
 
 const { totalHoy } = await getDailySales();
 const { totalMes } = await getMonthlySales();
@@ -14,12 +13,29 @@ const lowStock = await getLowStock();
 const { totalValue } = await getInventoryValue();
 const { totalValue: lastMonthValue } = await getLastMonthInventoryValue();
 const { totalUnits, avgPrice } = await getInventoryStats();
-
+// Series
+const dailySeries = await getDailySalesSeries();
+const monthlySeries = await getMonthlySalesSeries();
+const stockSeries = await getLowStockSeries();
 // calcular variación %
 let variation = 0;
 if (lastMonthValue > 0) {
   variation = ((totalValue - lastMonthValue) / lastMonthValue) * 100;
 }
+// Ejecuto las consultas de finanzas
+const { monthlySales, monthlyPurchases } = await getMonthlyFinance();
+const { quarterTotal, semesterTotal, annualTotal } = await getTotalsByPeriod();
+
+// Calculo el balance neto mensual
+const netBalance = monthlySales - monthlyPurchases;
+// Montly finance data 
+const monthlyFinanceData = await getMonthlyFinanceTrend();
+// Purchases
+const totalPurchases = await getMonthlyPurchasesTotal();
+const avgPurchase = await getAveragePurchase();
+const purchasesCount = await getPurchasesCount();
+const purchasesTrend = await getMonthlyPurchasesTrend();
+const topSuppliers = await getTopSuppliers();
 ---
 
 <section class="reportes">
@@ -28,7 +44,8 @@ if (lastMonthValue > 0) {
   <nav class="reportes-nav">
     <button class="tab-btn active" data-tab="ventas">Sales</button>
     <button class="tab-btn" data-tab="stock">Stock</button>
-    <button class="tab-btn" data-tab="compras">Purchases</button>
+    <button class="tab-btn" data-tab="purchases">Purchases</button>
+    <button class="tab-btn" data-tab="finance">Finance</button>
   </nav>
 
   <div id="reportes-content" class="reportes-content">
@@ -36,185 +53,377 @@ if (lastMonthValue > 0) {
       <h3>Sales Overview</h3>
       <div class="ventas-grid">
         <div class="reporte-card">
-          <h3> 📅 Today</h3>
-          <p>${totalHoy}</p>
+          <h3>📅 Today</h3>
+          <p>₱ {totalHoy.toFixed(2)}</p>
+          <canvas class="chart-mini" id="chart-today"></canvas>
+          <small class="trend-text">
+            vs yesterday:
+            <span
+              id="trend-value"
+              class={variation >= 0 ? "positive" : "negative"}>
+              {variation >= 0 ? "+" : ""}{variation.toFixed(1)}%
+            </span>
+          </small>
         </div>
+
         <div class="reporte-card">
-          <h3> 🗓️ This Month</h3>
-          <p>${totalMes}</p>
+          <h3>🗓️ This Month</h3>
+          <p>₱ {totalMes.toFixed(2)}</p>
+          <canvas class="chart-mini" id="chart-month"></canvas>
+          <small class="trend-text">vs last month:
+            <span class="positive">+3.8%</span>
+          </small>
         </div>
+
         <div class="reporte-card">
           <h3>💰 Inventory Value</h3>
-          <p>💵  ₱ {totalValue.toFixed(2)}</p>
+          <p>₱ {totalValue.toFixed(2)}</p>
 
           <small class={variation >= 0 ? "positive" : "negative"}>
             {variation >= 0 ? "⬆" : "⬇"}
             {variation.toFixed(1)}% vs last month
           </small>
 
-          <p>📦 <small>items in stock:</small> {totalUnits} </p>
-          <p>⚖️ <small>Avg. unit price:</small> ₱{avgPrice.toFixed(2)}</p>
+          <p><small>📦 items in stock:</small> {totalUnits}</p>
+          <p><small>⚖️ Avg. unit price:</small> ₱ {avgPrice.toFixed(2)}</p>
+        </div>
+      </div>
     </div>
+    <!-- Stock -->
+    <div class="tab-content" id="stock">
+    <div class="stock-grid">
+    
+    <!-- 1️⃣ Inventory Summary -->
+    <div class="reporte-card">
+      <h3>📦 Inventory Summary</h3>
+      <p><strong>Total Items:</strong> {totalUnits}</p>
+      <p><strong>Total Value:</strong> ₱ {totalValue.toFixed(2)}</p>
+      <p><strong>Average Price:</strong> ₱ {avgPrice.toFixed(2)}</p>
+    </div>
+
+    <!-- 2️⃣ Stock Chart -->
+    <div class="reporte-card chart-card">
+      <h3>📊 Stock Overview</h3>
+      <canvas id="chart-stock"></canvas>
+    </div>
+
+    <!-- 3️⃣ Low Stock Alerts -->
+    <div class="reporte-card">
+      <h3>⚠️ Low Stock Alerts</h3>
+      {
+        lowStock.length > 0 ? (
+          <ul>
+            {lowStock.map(({ name, stock }) => (
+              <li>{name}: {stock} units</li>
+            ))}
+          </ul>
+        ) : (
+          <p>✅ All stock is fine.</p>
+        )
+      }
+    </div>
+  </div>
+    </div>
+    <!-- Purchases -->
+    <div class="tab-content" id="purchases">
+  <div class="purchases-grid">
+    
+    <!-- 1️⃣ Purchases Summary -->
+    <div class="reporte-card">
+      <h3>🧾 Purchases Summary</h3>
+      <p><strong>Total Purchases:</strong> {purchasesCount}</p>
+      <p><strong>This Month:</strong> ₱ {totalPurchases.toFixed(2)}</p>
+      <p><strong>Average Purchase:</strong> ₱ {avgPurchase.toFixed(2)}</p>
+    </div>
+
+    <!-- 2️⃣ Monthly Purchases Chart -->
+    <div class="reporte-card chart-card">
+      <h3>📊 Monthly Purchases Trend</h3>
+      <canvas id="chart-purchases"></canvas>
+    </div>
+
+    <!-- 3️⃣ Top Suppliers -->
+    <div class="reporte-card">
+      <h3>🏆 Top Suppliers</h3>
+      <ul>
+        {topSuppliers.map(({ name, totalComprado }) => (
+          <li>{name}: ₱ {totalComprado.toFixed(2)}</li>
+        ))}
+      </ul>
+    </div>
+
+  </div>
+
+  
+
+</div>
+    <!-- Finance -->
+    <div class="tab-content" id="finance">
+      <div class="finance-grid">
+
+        <!-- 1️⃣ Resumen mensual -->
+        <div class="reporte-card">
+          <h3>📅 Monthly Summary</h3>
+          <p><strong>Sales:</strong> ₱ {monthlySales.toFixed(2)}</p>
+          <p><strong>Purchases:</strong> ₱ {monthlyPurchases.toFixed(2)}</p>
+          <hr>
+          <p><strong>Net Balance:</strong> ₱ {(monthlySales - monthlyPurchases).toFixed(2)}</p>
+        </div>
+
+        <!-- 2️⃣ Resumen general -->
+        <div class="reporte-card">
+          <h3>📈 Cumulative Totals</h3>
+          <p><strong>Last 3 Months:</strong> ₱ {quarterTotal.toFixed(2)}</p>
+          <p><strong>Last 6 Months:</strong> ₱ {semesterTotal.toFixed(2)}</p>
+          <p><strong>This Year:</strong> ₱ {annualTotal.toFixed(2)}</p>
+        </div>
+
+        <!-- 3️⃣ Gráfico opcional -->
+        <div class="reporte-card chart-card">
+          <h3>Balance Overview</h3>
+          <canvas id="chart-finance"></canvas>
+        </div>
+
       </div>
     </div>
 
-    <div class="tab-content" id="stock">
-      <h3>Stock Status</h3>
-      <div class="reporte-card">
-        {
-          lowStock.length > 0 ? (
-            <ul>
-              {lowStock.map((p) => (
-                <li>
-                  {p.name}: {p.stock} units
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>✅ All stock is fine.</p>
-          )
-        }
-      </div>
-    </div>
-    <div class="tab-content" id="compras">
-      <h3>Registered purchases</h3>
-      <div class="reporte-card">
-        <p>No purchases yet.</p>
-      </div>
-    </div>
   </div>
 </section>
 
 <style>
   .reportes {
-  padding-inline: 2rem;
-  background-color: #f8f9fa;
-  padding-top: 0.5rem;
-}
+    padding-inline: 2rem;
+    background-color: #f8f9fa;
+    padding-top: 0.5rem;
+  }
 
-.reportes h2 {
-  font-size: 1.8rem;
-  margin-bottom: 1rem;
-  font-weight: 600;
-  color: #0D1B2A;
-}
+  .reportes h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    color: #0d1b2a;
+  }
 
-/* --- Navegación Tabs --- */
-.reportes-nav {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 2rem;
-}
+  /* --- Navegación Tabs --- */
+  .reportes-nav {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+  }
 
-.tab-btn {
-  flex: 1;
-  padding: 0.6rem 1.2rem;
-  border: none;
-  background: #E5E7EB;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: 500;
-  transition: background 0.3s, color 0.3s;
-}
+  .tab-btn {
+    flex: 1;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    background: #e5e7eb;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    transition:
+      background 0.3s,
+      color 0.3s;
+  }
 
-.tab-btn.active {
-  background: #0D1B2A;
-  color: white;
-}
+  .tab-btn.active {
+    background: #0d1b2a;
+    color: white;
+  }
 
-.tab-btn:hover {
-  background: #1B263B;
-  color: white;
-}
+  .tab-btn:hover {
+    background: #1b263b;
+    color: white;
+  }
 
-/* --- Contenido Tabs --- */
-.tab-content {
-  display: none;
-}
-.tab-content.active {
-  display: block;
-}
+  /* --- Contenido Tabs --- */
+  .tab-content {
+    display: none;
+  }
+  .tab-content.active {
+    display: block;
+  }
 
-/* --- Grid de métricas --- */
-.ventas-grid {
+  /* --- Grid de métricas --- */
+  .ventas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.2rem;
+    margin-top: 1rem;
+  }
+
+  .reporte-card {
+    background: #f2f2f2;
+    border-radius: 0.8rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    justify-content: center;
+  }
+
+  /* --- Jerarquía de texto --- */
+  .reporte-card h3 {
+    font-size: 1.125rem;
+    font-weight: 500;
+    color: #666;
+    margin: 0.2rem 0;
+  }
+
+  .reporte-card p {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0;
+    color: #0d1b2a;
+  }
+
+  .reporte-card small {
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+  /* charts */
+  canvas {
+    width: 100%;
+    height: 120px;
+  }
+  /* === MINI CHARTS === */
+  .chart-mini {
+    width: 100%;
+    height: 60px;
+    margin-top: 0.5rem;
+    background: linear-gradient(to bottom, #ffffff, #f2f2f2);
+    border-radius: 4px;
+  }
+  .stock-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.2rem;
-  margin-top: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
 }
 
 .reporte-card {
-  background: #f2f2f2;
-  border-radius: 0.8rem;
+  background: #f9fafb;
+  border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.chart-card {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-  justify-content: center;
+  align-items: center;
 }
 
-/* --- Jerarquía de texto --- */
+.chart-card canvas {
+  width: 100%;
+  height: 160px;
+}
+
 .reporte-card h3 {
-  font-size: 1.125rem;
-  font-weight: 500;
-  color: #666;
-  margin: 0.2rem 0;
-}
-
-.reporte-card p {
-  font-size: 1.4rem;
-  font-weight: 600;
-  margin: 0;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
   color: #0D1B2A;
 }
 
-.reporte-card small {
-  font-size: 0.85rem;
-  font-weight: 500;
+.reporte-card p {
+  margin: 0.3rem 0;
 }
 
-/* Badge de comparativa */
-.positive {
-  color: #22C55E;
-}
-
-.negative {
-  color: #EF4444;
-}
-
-/* --- Sección Stock y Compras --- */
-#stock ul {
+.reporte-card ul {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-#stock li {
-  font-size: 0.95rem;
-  padding: 0.3rem 0;
-  border-bottom: 1px solid #f0f0f0;
+.reporte-card li {
+  margin: 0.2rem 0;
+  color: #1B263B;
+}
+.purchases-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  align-items: start;
 }
 
-#stock li:last-child {
-  border-bottom: none;
+.reporte-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  padding: 1.5rem;
 }
 
-#compras p {
-  color: #666;
-  font-size: 1rem;
+.chart-card {
+  padding: 1rem;
+  text-align: center;
 }
 
-/* --- Responsive --- */
-@media (max-width: 768px) {
-  .ventas-grid {
-    grid-template-columns: 1fr;
+.finance-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+  /* Texto de tendencia bajo los gráficos */
+  .trend-text {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 0.4rem;
   }
-}
 
+  /* Ajustes visuales de las cards con gráfico */
+  .reporte-card {
+    position: relative;
+    padding-bottom: 1rem;
+  }
+
+  .reporte-card p {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #0d1b2a;
+  }
+
+  .reporte-card small {
+    font-size: 0.85rem;
+  }
+
+  /* Badge de comparativa */
+  .positive {
+    color: #22c55e;
+  }
+
+  .negative {
+    color: #ef4444;
+  }
+
+  /* --- Sección Stock y Compras --- */
+  #stock ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  #stock li {
+    font-size: 0.95rem;
+    padding: 0.3rem 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  #stock li:last-child {
+    border-bottom: none;
+  }
+
+  #compras p {
+    color: #666;
+    font-size: 1rem;
+  }
+
+  /* --- Responsive --- */
+  @media (max-width: 768px) {
+    .ventas-grid {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
-  <!-- <style>
+<!-- <style>
     .reportes {
       max-width: 1200px;
       margin: 2rem auto;
@@ -299,34 +508,247 @@ if (lastMonthValue > 0) {
       margin-top: 1rem;
     }
   </style> -->
+<!-- JSON para JS -->
+<script id="daily-data" type="application/json" set:html={JSON.stringify(dailySeries)} />
+<script id="monthly-data" type="application/json" set:html={JSON.stringify(monthlySeries)} />
+<script id="stock-data" type="application/json" set:html={JSON.stringify(stockSeries)} />
+<script id="finance-data" type="application/json" set:html={JSON.stringify(monthlyFinanceData)} />
+<script id="purchases-data" type="application/json" set:html={JSON.stringify(purchasesTrend)} />
 
-  <script is:inline>
-    document.querySelectorAll(".tab-btn").forEach((btn) => {
+
+<script is:inline>
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document
+        .querySelectorAll(".tab-btn")
+        .forEach((b) => b.classList.remove("active"));
+      document
+        .querySelectorAll(".tab-content")
+        .forEach((c) => c.classList.remove("active"));
+
+      btn.classList.add("active");
+      const tab = btn.dataset.tab;
+      document.getElementById(tab).classList.add("active");
+    });
+  });
+  // Conectar los reportes con los botones
+  document.addEventListener("DOMContentLoaded", () => {
+    const buttons = document.querySelectorAll(".tab-btn");
+    const contents = document.querySelectorAll(".tab-content");
+    buttons.forEach((btn) =>
       btn.addEventListener("click", () => {
-        document
-          .querySelectorAll(".tab-btn")
-          .forEach((b) => b.classList.remove("active"));
-        document
-          .querySelectorAll(".tab-content")
-          .forEach((c) => c.classList.remove("active"));
-
+        buttons.forEach((b) => b.classList.remove("active"));
+        contents.forEach((c) => c.classList.remove("active"));
         btn.classList.add("active");
-        const tab = btn.dataset.tab;
-        document.getElementById(tab).classList.add("active");
-      });
-    });
-    // Conectar los reportes con los botones
-    document.addEventListener("DOMContentLoaded", () => {
-      const buttons = document.querySelectorAll(".tab-btn");
-      const contents = document.querySelectorAll(".tab-content");
-      buttons.forEach((btn) =>
-        btn.addEventListener("click", () => {
-          buttons.forEach((b) => b.classList.remove("active"));
-          contents.forEach((c) => c.classList.remove("active"));
-          btn.classList.add("active");
-          document.getElementById(btn.dataset.tab).classList.add("active");
-        }),
-      );
-    });
-  </script>
+        document.getElementById(btn.dataset.tab).classList.add("active");
+      }),
+    );
+  });
 
+  // gráficos de barra
+  document.addEventListener("DOMContentLoaded", () => {
+    // Helper para leer los bloques JSON
+    const getData = (id) => {
+      const el = document.getElementById(id);
+      return el ? JSON.parse(el.textContent) : [];
+    };
+
+    const dailyData = getData("daily-data");
+    const monthlyData = getData("monthly-data");
+    const stockData = getData("stock-data");
+
+    // === Ventas Diarias ===
+    const ctxDaily = document.getElementById("chart-today");
+    if (ctxDaily && dailyData.length) {
+      new Chart(ctxDaily, {
+        type: "bar",
+        data: {
+          labels: dailyData.map((d) => d.date),
+          datasets: [
+            {
+              label: "Sales (₱)",
+              data: dailyData.map((d) => d.total),
+              backgroundColor: "#22C55E",
+              borderRadius: 5,
+            },
+          ],
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: "#0D1B2A" }, grid: { display: false } },
+            y: { beginAtZero: true, ticks: { color: "#0D1B2A" } },
+          },
+        },
+      });
+    }
+
+    // === Ventas Mensuales ===
+    const ctxMonthly = document.getElementById("chart-month");
+    if (ctxMonthly && monthlyData.length) {
+      new Chart(ctxMonthly, {
+        type: "bar",
+        data: {
+          labels: monthlyData.map((m) => m.month),
+          datasets: [
+            {
+              label: "Monthly Sales (₱)",
+              data: monthlyData.map((m) => m.total),
+              backgroundColor: "#22C55E",
+              borderRadius: 5,
+            },
+          ],
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: "#0D1B2A" }, grid: { display: false } },
+            y: { beginAtZero: true, ticks: { color: "#0D1B2A" } },
+          },
+        },
+      });
+    }
+
+    // === Stock bajo ===
+    const ctxStock = document.getElementById("chart-stock");
+    if (ctxStock && stockData.length) {
+      new Chart(ctxStock, {
+        type: "bar",
+        data: {
+          labels: stockData.map((s) => s.name),
+          datasets: [
+            {
+              label: "Stock actual",
+              data: stockData.map((s) => s.stock),
+              backgroundColor: "#EF4444",
+              borderRadius: 5,
+            },
+          ],
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: "#0D1B2A" }, grid: { display: false } },
+            y: { beginAtZero: true, ticks: { color: "#0D1B2A" } },
+          },
+        },
+      });
+    }
+
+    // Finanzas
+  const financeData = JSON.parse(document.getElementById("finance-data").textContent);
+const ctx = document.getElementById("chart-finance");
+
+const labels = financeData.map(item => {
+  const [year, month] = item.month.split("-");
+  const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+  return monthNames[parseInt(month) - 1];
+});
+
+const salesData = financeData.map(item => item.sales);
+const purchasesData = financeData.map(item => item.purchases);
+const netData = financeData.map(item => item.net);
+
+new Chart(ctx, {
+  type: "bar", // o "line" si querés mostrar tendencia
+  data: {
+    labels,
+    datasets: [
+      {
+        label: "Sales",
+        data: salesData,
+        backgroundColor: "#22C55E",
+        borderColor: "#22C55E",
+        borderWidth: 1,
+      },
+      {
+        label: "Purchases",
+        data: purchasesData,
+        backgroundColor: "#EF4444",
+        borderColor: "#EF4444",
+        borderWidth: 1,
+      },
+      {
+        label: "Net Balance",
+        data: netData,
+        backgroundColor: "#0D1B2A",
+        borderColor: "#0D1B2A",
+        borderWidth: 1,
+      },
+    ],
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: { color: "#0D1B2A" },
+      },
+      title: {
+        display: true,
+        text: "Monthly Evolution (Last 12 Months)",
+        color: "#0D1B2A",
+        font: { size: 16, weight: "bold" },
+      },
+    },
+    scales: {
+      x: {
+        ticks: { color: "#0D1B2A" },
+        grid: { display: false },
+      },
+      y: {
+        beginAtZero: true,
+        ticks: { color: "#0D1B2A" },
+        grid: { color: "#E5E7EB" },
+      },
+    },
+  },
+});
+// Purchases chart
+const purchasesChartData = JSON.parse(document.getElementById("purchases-data").textContent);
+const purchasesChartCtx = document.getElementById("chart-purchases");
+
+const purchasesChartLabels = purchasesChartData.map(d => d.month);
+const purchasesChartTotals = purchasesChartData.map(d => d.total);
+
+new Chart(purchasesChartCtx, {
+  type: "bar",
+  data: {
+    labels: purchasesChartLabels, // ✅ nombre correcto
+    datasets: [{
+      label: "Monthly Purchases",
+      data: purchasesChartTotals,
+      borderColor: "#0D1B2A",
+      backgroundColor: "rgba(34,197,94,0.2)",
+      tension: 0.3,
+      fill: true,
+      borderWidth: 2,
+      pointRadius: 4,
+      pointBackgroundColor: "#22C55E",
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => `₱ ${ctx.parsed.y.toFixed(2)}`
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: { color: "#0D1B2A" }
+      },
+      x: {
+        ticks: { color: "#0D1B2A" }
+      }
+    }
+  }
+});
+
+}); //cierra el DOMContentLoaded
+  
+</script>

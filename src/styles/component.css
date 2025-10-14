@@ -1,0 +1,98 @@
+
+
+/* ===========================
+   COMPONENTES REUTILIZABLES
+=========================== */
+
+.card {
+  background: #fff;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-md);
+  text-align: center;
+}
+
+.card-header {
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+}
+
+
+.card li::before {
+  content: "•";
+  color: var(--color-accent);
+  margin-right: 6px;
+}
+.card ul {
+  list-style: none;
+  padding-left: 0;
+  text-align: left;
+}
+.card p {
+  font-size: 1.5rem;
+  font-weight: bold
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #fff;
+}
+
+.badge.new {
+  background-color: var(--color-primary-hover);
+}
+
+.badge.danger {
+  background-color: var(--color-danger);
+}
+
+/* Dropdown */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--radius);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  min-width: 150px;
+  z-index: 10;
+}
+.dropdown-item {
+  display: block;
+  padding: 0.5rem 1rem;
+  color: #111;
+  text-decoration: none;
+}
+.dropdown-item:hover {
+  background: #f3f4f6;
+}
+
+/* Modal */
+.modal {
+    align-items: center;
+    background: rgba(0,0,0,0.45);
+    display: none;
+    justify-content: center;
+    inset: 0;
+    position: fixed;
+}
+.modal.open {
+  display: flex;
+}
+.modal-content {
+    border-radius: 5px;
+  background: white;
+  padding: 2rem;
+  border-radius: var(--radius);
+  max-width: 600px;
+  width: 100%;
+}

@@ -1,0 +1,113 @@
+---
+import { actions } from "astro:actions";
+
+
+// Listar categorías
+const catResult = await Astro.callAction(actions.listCategories, undefined);
+const categories = catResult.data?.data ?? [];
+---
+
+<section class="dashboard">
+  <div class="categories-header">
+    <div>
+      <h1>📂 Categories</h1>
+      <p class="muted">Manage product categories</p>
+    </div>
+    <div class="header-actions">
+      <a href="/admin/products" class="btn btn-primary">← Back to Products</a>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <!-- Left: categories table -->
+    <div class="main-col">
+      <div class="card">
+        <div class="card-h">
+          <h3>Existing categories</h3>
+        </div>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr class="table-title">
+                <th>Name</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {
+                categories.length > 0 ? categories.map(({id, name }) => (
+                  <tr>
+                    <td>{name}</td>
+                    <td>
+                      <form action={actions.deleteCategory} method="post" onsubmit="return confirm('Delete this category?')">
+                        <input type="hidden" name="id" value={id} />
+                        <button class="btn-danger small" type="submit">🗑 Delete</button>
+                      </form>
+                    </td>
+                  </tr>
+                )) : (
+                  <tr>
+                    <td colspan="2">No categories yet.</td>
+                  </tr>
+                )
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: add category form -->
+    <aside class="sidebar-col">
+      <details class="card" open>
+        <summary class="card-h">
+          <h4>Create category</h4>
+        </summary>
+        <form action={actions.createCategory} class="form" method="post" >
+          <label>
+            Name
+            <input name="name" placeholder="e.g. Beverages" required />
+          </label>
+          <div class="form-actions">
+            <button class="btn btn-primary" type="submit">Save</button>
+          </div>
+        </form>
+      </details>
+    </aside>
+  </div>
+</section>
+
+<style>
+.categories-dashboard{
+  padding-inline:1.25rem;
+  padding-top: 1.5rem;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+  color:#0f172a;
+  background: #f5f5f5;
+}
+.categories-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  margin-bottom:1rem;
+}
+.categories-header h1 { 
+    margin:0; 
+    font-size:1.4rem 
+}
+.muted { 
+    color:var(--muted); 
+    font-size:0.9rem 
+}
+.main-grid { 
+    display:grid; 
+    grid-template-columns: 1fr 320px; gap:1rem 
+}
+
+@media (max-width: 820px){ 
+  .main-grid { 
+    grid-template-columns:1fr 
+  } 
+}
+</style>

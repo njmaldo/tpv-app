@@ -1,34 +1,54 @@
-import { defineMiddleware } from 'astro:middleware';
-import { getSession } from 'auth-astro/server';
+import { defineMiddleware } from "astro/middleware";
+import { getSession } from "auth-astro/server";
 
-const PUBLIC_ROUTES = ['/login', '/register', '/redirect-by-role'];
-const ADMIN_ROUTES = ['/protected','admin/products']; 
+// --- Rutas ---
+const PUBLIC_ROUTES = ["/", "/login", "/register"];
+const TPV_ROUTES = ["/tpv"];
+const ADMIN_PREFIX = "/admin";
 
-export const onRequest = defineMiddleware(
-  async ({ url, locals, redirect, request }, next) => {
+export const onRequest = defineMiddleware(async ({ url, locals, redirect, request }, next) => {
+  const session = await getSession(request);
+  const user = session?.user;
+  const isLoggedIn = Boolean(user);
 
-    const session = await getSession(request);
-    const isLoggedIn = !!session;
-    const user = session?.user;
+  // Inicialización de locals (para usarlos en layouts o páginas)
+  locals.isLoggedIn = isLoggedIn;
+  locals.user = user
+    ? {
+        id: user.id,
+        name: user.name ?? "",
+        email: user.email ?? "",
+        role: (user as any).role ?? "user", // por compatibilidad
+      }
+    : null;
+  locals.isAdmin = user?.role === "admin";
+  
+  const path = url.pathname;
 
-    // Inicialización de locals
-    locals.isLoggedIn = isLoggedIn;
-    locals.user = user ? { email: user.email ?? '', name: user.name ?? '' } : null;
-    locals.isAdmin = user?.role === 'admin';
-
-    // --- Lógica de Protección de Rutas ---
-    // 1. Redirigir a usuarios logueados que intentan acceder a rutas públicas
-    if (isLoggedIn && PUBLIC_ROUTES.includes(url.pathname)) {
-      return redirect('/');
-    }
-    
-    // 2. Proteger rutas que requieren rol de admin
-    const requiresAdmin = ADMIN_ROUTES.some(route => url.pathname.startsWith(route));
-    if (requiresAdmin && (!isLoggedIn || !locals.isAdmin)) {
-      return redirect('/'); // Redirige si la ruta es de admin pero el usuario no lo es o no está logueado
-    }
-
-    // Si todo está en orden, continúa
+  // --- 1. Rutas públicas ---
+  if (PUBLIC_ROUTES.includes(path)) {
     return next();
   }
-);
+
+  // --- 2. Rutas TPV (solo usuarios logueados) ---
+  if (TPV_ROUTES.some((route) => path.startsWith(route))) {
+    if (!isLoggedIn) return redirect("/login");
+    return next();
+  }
+
+  // --- 3. Rutas Admin ---
+  if (path.startsWith(ADMIN_PREFIX)) {
+    if (!isLoggedIn) return redirect("/login");
+    if (!locals.isAdmin) {
+      return redirect("/tpv");
+    }
+  }
+  if (path.startsWith("/api/auth")) return next();
+
+  // --- 4. Catch-all: requiere login ---
+  if (!isLoggedIn) {
+    return redirect("/login");
+  }
+
+  return next();
+});

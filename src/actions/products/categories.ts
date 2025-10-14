@@ -1,6 +1,7 @@
-
+import { defineAction } from "astro:actions";
 import tursoClient from "@/lib/turso";
 import { z } from "zod";
+import { randomUUID } from "node:crypto";
 import type { Category } from "@/interfaces/BakeryItem";
 
 const CategoryRow = z.object({
@@ -8,47 +9,52 @@ const CategoryRow = z.object({
   name: z.string(),
 });
 
-// Obtener todas las categorías
-export async function getCategories(): Promise<Category[]> {
-  const result = await tursoClient.execute(
-    `SELECT id, name
-     FROM categories
-     ORDER BY name ASC`
-  );
-  
-  return result.rows.map((r) => CategoryRow.parse(r));
-}
 
-// Crear una categoría
-
-export async function createCategory(data: Omit<Category, "id">): Promise<Category> {
-  const id = crypto.randomUUID();
-
-  try {
-    await tursoClient.execute(
-      `INSERT INTO categories (id, name) VALUES (?, ?)`,
-      [id, data.name.trim()]
-    );
-
-    return { id, name: data.name.trim() };
-  } catch (error: any) {
-    console.error("Error al crear categoría:", error);
-    throw new Error("No se pudo crear la categoría");
-  }
-}
-
-// Eliminar una categoría
-export async function deleteCategory(id: string): Promise<{ success: boolean }> {
-  try {
+// 1. Listar categorías
+export const listCategories = defineAction({
+  accept: "json",
+  handler: async () => {
     const result = await tursoClient.execute(
-      `DELETE FROM categories WHERE id = ?`,
-      [id]
+      `SELECT id, name
+       FROM categories
+       ORDER BY name ASC`
     );
 
-    return { success: result.rowsAffected > 0 };
-  } catch (error: any) {
-    console.error("Error al eliminar categoría:", error);
-    throw new Error("No se pudo eliminar la categoría");
-  }
-}
+    const rows = result.rows.map((r) => CategoryRow.parse(r));
+    return { success: true, data: rows };
+  },
+});
 
+// 2. Crear categoría
+export const createCategory = defineAction({
+  accept: "form",
+  input: z.object({
+    name: z.string().min(1),
+  }),
+  handler: async ({ name }) => {
+    const id = randomUUID();
+
+    await tursoClient.execute({
+      sql: "INSERT INTO categories (id, name) VALUES (?, ?)",
+      args: [id, name],
+    });
+
+    return { success: true, id };
+  },
+});
+
+
+// 3. Eliminar categoría
+export const deleteCategory = defineAction({
+  accept: "form",
+  input: z.object({
+    id: z.string(),
+  }),
+  handler: async ({ id }) => {
+    await tursoClient.execute({
+      sql: "DELETE FROM categories WHERE id = ?",
+      args: [id],
+    });
+    return { success: true };
+  },
+});

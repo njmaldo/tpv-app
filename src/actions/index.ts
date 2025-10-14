@@ -1,13 +1,20 @@
-import { loginUser, logout, registerUser } from './auth';
-import { createPurchase, deletePurchase, listPurchases, updatePurchase } from './compras';
+import {login,logout, register } from './auth';
+import { createPurchase, deletePurchase, 
+         listPurchases, updatePurchase } from './compras';
+import {listEmployees,deleteEmployee, getEmployeeActive, toggleEmployeeActive, updateEmployee, createEmployee } from './employees';
 import {
   addBakeryItem, deleteBakeryItem, getActiveProducts,
   getProductsByCategory, toggleActive, updateBakeryItem
 } from './products';
-import { createCategory, deleteCategory, getCategories } from './products/categories';
+import { createCategory, deleteCategory, listCategories } from './products/categories';
+
 import { createSupplier, deleteSupplier, listSuppliers, updateSupplier } from './proveedores';
-import { addCashClosure } from './tpv/addCashClosure';
+import { checkCashClosure } from './tpv/checkCashClosure';
+import { checkOpenShift } from './tpv/checkOpenShift';
+import { closeShift } from './tpv/closeShift';
+import { getEmployees } from './tpv/employees';
 import { getSalesSummary } from './tpv/getSalesSummary';
+import { openShift } from './tpv/openShift';
 import { addSale } from './tpv/sales';
 
 
@@ -15,9 +22,16 @@ import { addSale } from './tpv/sales';
 
 export const server = {
   //auth
-  registerUser,
-  loginUser,
+  register,
+  login,
   logout,
+  // Empleados
+  createEmployee,
+  listEmployees,
+  toggleEmployeeActive,
+  deleteEmployee,
+  updateEmployee,
+  getEmployeeActive,
   //products
   addBakeryItem,
   updateBakeryItem,
@@ -26,13 +40,17 @@ export const server = {
   getProductsByCategory,
   toggleActive,
   //categories
-  getCategories,
+  listCategories,
   createCategory,
   deleteCategory,
   //TPV 
   addSale,
-  addCashClosure,
+  checkCashClosure,
+  checkOpenShift,
   getSalesSummary,
+  openShift,
+  closeShift,
+  getEmployees,
   // Proveedores
   createSupplier,
   updateSupplier,

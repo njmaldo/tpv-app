@@ -1,0 +1,569 @@
+/* ===========================
+    BASE / RESET
+=========================== */
+/*src/
+ └── styles/
+      ├── base.css          ← global/reset/botones/tablas/formularios/utilidades
+      ├── components.css    ← dropdown, modal, toast, card, badge, status, etc.
+      ├── dashboard.css     ← estilos comunes de admin (cards, headers) */
+
+:root {
+  /* Colores base */
+  --color-primary: #0D1B2A;
+  --color-primary-hover: #22C55E;
+  --color-secondary: #1B263B;
+  --color-accent: #22C55E;
+  --color-danger: #ef4444;
+  --color-success: #16a34a;
+  --color-muted: #6b7280;
+
+  /*  Fondo y texto */
+  --color-bg: #f8fafc;
+  --color-surface: #f9f9fa;
+  --color-border: #e6eef6;
+  --color-text: #0D1B2A;
+
+  /* Tipografía */
+  --font-family-base: 'Poppins Rounded', 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-size-base: 16px;
+  --font-size-sm: 14px;
+  --font-size-lg: 18px;
+  --line-height-base: 1.5;
+
+  /* Espaciado */
+  --spacing-xs: 0.25rem;
+  /* 4px */
+  --spacing-sm: 0.5rem;
+  /* 8px */
+  --spacing-md: 1rem;
+  /* 16px */
+  --spacing-lg: 1.5rem;
+  /* 24px */
+  --spacing-xl: 2rem;
+  /* 32px */
+  --gap: 1rem;
+
+  /* Bordes y radios */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+
+  /* Sombras */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 6px 18px rgba(13, 27, 42, 0.06);
+  --shadow-lg: 0 12px 24px rgba(13, 27, 42, 0.1);
+
+  /* Z-index */
+  --z-modal: 1000;
+  --z-dropdown: 900;
+  --z-header: 800;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Quitar decoración y heredar fuente */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  border: none;
+  outline: none;
+  background: none;
+}
+
+/* Imagen y medios fluidos */
+img,
+video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ===========================
+   ELEMENTOS BASE
+=========================== */
+
+html {
+  font-size: var(--font-size-base);
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Tipografía */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+p {
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text);
+}
+
+a:hover {
+  font-weight: bold;
+  /* text-decoration: underline; */
+}
+
+/* =========================
+   BASE BUTTON STYLE
+   ========================= */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm, 5px);
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  text-align: center;
+  border: none;
+  line-height: 1.2;
+}
+
+.btn svg {
+  stroke-width: 2;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* =========================
+   PRIMARY BUTTON
+   ========================= */
+.btn-primary {
+  background-color: #f46214;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(244, 98, 20, 0.2);
+}
+
+.btn-primary:hover {
+  background-color: #e6570d;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(244, 98, 20, 0.25);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(244, 98, 20, 0.15);
+}
+
+/* =========================
+   SECONDARY BUTTON
+   ========================= */
+.btn-secondary {
+  background-color: #fff;
+  color: #1b263b;
+  border: 1px solid #dcdcdc;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.btn-secondary:hover {
+  background-color: #f8f8f8;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.btn-secondary:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(244, 98, 20, 0.2);
+}
+
+/* =========================
+   OUTLINE BUTTON
+   ========================= */
+.btn-outline {
+  border: 1px solid #f0f0f0f0;
+  background: transparent;
+  color: #1b263b;
+}
+
+.btn-outline:hover {
+  border-color: #f46214;
+  background-color: #f9fafb;
+  color: #000;
+}
+
+/* =========================
+   DANGER BUTTON
+   ========================= */
+.btn-danger {
+  background-color: #ffeaea;
+  color: #d92323;
+  border: 1px solid #f1b4b4;
+}
+
+.btn-danger:hover {
+  background-color: #ffdddd;
+  color: #b31515;
+}
+
+/* =========================
+   DARK BUTTON
+   ========================= */
+.btn-dark {
+  background-color: #1b263b;
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn-dark:hover {
+  background-color: #0d1b2a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* =========================
+   GHOST BUTTON
+   ========================= */
+.btn-ghost {
+  background: transparent;
+  color: #444;
+  border: 1px solid transparent;
+}
+
+.btn-ghost:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #000;
+}
+/* ===========================
+    FORMULARIOS
+=========================== */
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.75rem;
+  background-color: #fff;
+  transition: border-color 0.2s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--color-primary-hover);
+  outline: none;
+}
+
+label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text);
+  margin-bottom: 0.25rem;
+}
+
+/* ===========================
+    TABLAS BÁSICAS
+=========================== */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: sans-serif;
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.table thead {
+  background-color: #f7f8fa;
+}
+
+.table th {
+  padding: 1rem 1.25rem;
+  font-weight: 600;
+  text-align: left;
+  color: #444;
+  text-transform: capitalize;
+  font-size: 0.95rem;
+  border-bottom: 2px solid #ddd;
+  background-color: #f0f0f0;
+}
+
+.table td {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #eee;
+  color: #333;
+  vertical-align: middle;
+}
+
+.table tbody tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+.table tbody tr:hover {
+  background-color: #f0f0f0;
+}
+
+tbody::after {
+  content: "";
+  display: block;
+  height: 100px;
+}
+
+.table tbody tr:hover {
+  background-color: #f0f0f0;
+  /* hover general */
+}
+
+/* ===========================
+    Dropdown
+=========================== */
+
+/* === GLOBAL DROPDOWN MENU (para btn ⋮) === */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+/* === Contenedor principal === */
+.dropdown-container {
+  position: relative;
+  display: inline-block;
+  justify-self: center;
+  width: 100%; 
+}
+
+/* === Botón principal (usa tu clase .btn existente) === */
+.dropdown-container .btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* === Menú desplegable === */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0; /* alineado al botón */
+  margin-top: 6px;
+  z-index: 100;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.25rem 0;
+  min-width: 180px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1),
+              0 1px 3px rgba(0, 0, 0, 0.05);
+  display: none;
+}
+.dropdown-container::before {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  height: 10px; /* ajustá el tamaño del área buffer */
+  background: transparent;
+}
+/* === Mostrar cuando está activa (controlado por JS) === */
+.dropdown-menu.show {
+  display: block;
+}
+
+/* === Items del menú === */
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.6rem 1rem;
+  background: none;
+  border: none;
+  text-align: left;
+  color: #374151;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.dropdown-item:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+/* Variante destructiva */
+.dropdown-item.danger {
+  color: #c62828;
+}
+
+/* === Desktop: permite hover automático === */
+@media (min-width: 769px) {
+  .dropdown-container:hover .dropdown-menu {
+    display: block;
+  }
+}
+
+/* === Responsive ajustes === */
+@media (max-width: 768px) {
+  .dropdown-container {
+    width: auto;
+  }
+
+  .dropdown-container .btn {
+    width: auto;
+    justify-content: center;
+  }
+
+  .dropdown-menu {
+    right: 0;
+    left: auto;
+    transform: none;
+    min-width: 160px;
+  }
+}
+/* Fin nuevo dropdown */
+/* === Items internos (links o botones) === */
+/* .dropdown-menu a,
+.dropdown-menu button {
+  display: block;
+  width: 100%;
+  padding: 0.6rem 1rem;
+  background: none;
+  border: none;
+  text-align: left;
+  color: #374151;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.dropdown-menu a:hover,
+.dropdown-menu button:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+.dropdown-menu.show {
+  display: block;
+} */
+/* Variante de acción destructiva */
+/* .dropdown-item.danger {
+  color: #c62828;
+}
+.dropdown-menu.hidden {
+  display: none;
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.9rem;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.dropdown-item:hover {
+  background: #f7f7f7;
+}
+
+.dropdown-item.danger {
+  color: #c62828;
+} */
+
+.btn-icon {
+  background-color: #fff;          /* fondo blanco permanente */
+  border: 1px solid #e5e7eb;       /* borde gris claro visible */
+  color: #374151;
+  font-size: 1.25rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  line-height: 1;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s;
+}
+
+.btn-icon:hover {
+  background-color: #f9fafb;       
+  border-color: #d1d5db;           
+  color: #111827;                 
+}
+
+/* Estado activo (cuando el menú está abierto) */
+.btn-icon.active {
+  background-color: #f3f4f6;
+  border-color: #cbd5e1;
+  color: #111827;
+}
+
+
+/* ===========================
+    UTILIDADES
+=========================== */
+
+
+.link.small {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.status-active {
+  color: var(--positive);
+  font-weight: bold;
+}
+
+.status-inactive {
+  color: var(--negative);
+  font-weight: bold;
+}
+
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.mt-sm {
+  margin-top: var(--spacing-sm);
+}
+
+.mt-md {
+  margin-top: var(--spacing-md);
+}
+
+.mt-lg {
+  margin-top: var(--spacing-lg);
+}

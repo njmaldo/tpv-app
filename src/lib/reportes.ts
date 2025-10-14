@@ -158,3 +158,186 @@ export async function getInventoryStats() {
     avgPrice: row.avgPrice ?? 0
   };
 }
+
+// Series 
+// Diaria
+export async function getDailySalesSeries() {
+  const result = await tursoClient.execute({
+    sql: `
+      SELECT 
+        strftime('%m-%d', createdAt) AS label,
+        SUM(totalAmount) AS total
+      FROM Sales
+      WHERE createdAt >= date('now', '-6 days')
+      GROUP BY label
+      ORDER BY label ASC
+    `,
+    args: [],
+  });
+
+  return result.rows.map((r) => ({
+    date: r.label as string,
+    total: Number(r.total) || 0,
+  }));
+}
+
+// Mensual
+export async function getMonthlySalesSeries() {
+  const result = await tursoClient.execute({
+    sql: `
+      SELECT 
+        strftime('%m', createdAt) AS month,
+        SUM(totalAmount) AS total
+      FROM Sales
+      WHERE createdAt >= date('now', '-5 months')
+      GROUP BY month
+      ORDER BY month ASC
+    `,
+    args: [],
+  });
+
+  return result.rows.map((r) => ({
+    month: r.month as string,
+    total: Number(r.total) || 0,
+  }));
+}
+
+// Stock
+export async function getLowStockSeries() {
+  const result = await tursoClient.execute({
+    sql: `
+      SELECT 
+        name,
+        stock
+      FROM bakery_items
+      WHERE stock <= 10
+      ORDER BY stock ASC
+      LIMIT 7
+    `,
+    args: [],
+  });
+
+  return result.rows.map((r) => ({
+    name: r.name as string,
+    stock: Number(r.stock),
+  }));
+}
+
+// Finanzas 
+export async function getMonthlyFinance() {
+  // Ventas mensuales
+  const sales = await tursoClient.execute({
+    sql: `
+      SELECT SUM(totalAmount) AS total
+      FROM Sales
+      WHERE substr(createdAt, 1, 7) = strftime('%Y-%m', 'now')
+    `,
+  });
+
+  // Compras mensuales
+  const purchases = await tursoClient.execute({
+    sql: `
+      SELECT SUM(total) AS total
+      FROM Purchases
+      WHERE substr(purchaseDate, 1, 7) = strftime('%Y-%m', 'now')
+    `,
+  });
+
+  const monthlySales = Number(sales.rows[0].total || 0);
+  const monthlyPurchases = Number(purchases.rows[0].total || 0);
+
+  return { monthlySales, monthlyPurchases };
+}
+
+export async function getTotalsByPeriod() {
+  const query = async (months: number) => {
+    const sales = await tursoClient.execute({
+      sql: `
+        SELECT SUM(totalAmount) AS total 
+        FROM Sales 
+        WHERE date(substr(createdAt, 1, 10)) >= date('now', ?)
+      `,
+      args: [`-${months} months`],
+    });
+
+    const purchases = await tursoClient.execute({
+      sql: `
+        SELECT SUM(total) AS total 
+        FROM Purchases 
+        WHERE date(purchaseDate) >= date('now', ?)
+      `,
+      args: [`-${months} months`],
+    });
+
+    const total = Number(sales.rows[0].total || 0) - Number(purchases.rows[0].total || 0);
+    return total;
+  };
+
+  return {
+    quarterTotal: await query(3),
+    semesterTotal: await query(6),
+    annualTotal: await query(12),
+  };
+}
+
+// Monthly Finance data 
+export async function getMonthlyFinanceTrend() {
+  // Trae los últimos 12 meses de ventas
+  const sales = await tursoClient.execute({
+    sql: `
+      SELECT 
+        strftime('%Y-%m', REPLACE(REPLACE(createdAt, 'T', ' '), 'Z', '')) AS month,
+        SUM(totalAmount) AS total
+      FROM Sales
+      WHERE date(substr(createdAt, 1, 10)) >= date('now', '-12 months')
+      GROUP BY month
+      ORDER BY month ASC;
+    `
+  });
+
+  // Trae los últimos 12 meses de compras
+  const purchases = await tursoClient.execute({
+    sql: `
+      SELECT 
+        strftime('%Y-%m', REPLACE(REPLACE(purchaseDate, 'T', ' '), 'Z', '')) AS month,
+        SUM(total) AS total
+      FROM Purchases
+      WHERE date(purchaseDate) >= date('now', '-12 months')
+      GROUP BY month
+      ORDER BY month ASC;
+    `
+  });
+
+  // Convertir resultados en diccionarios { '2025-05': 1234.56, ... }
+  const salesMap = Object.fromEntries(
+    sales.rows.map(r => [r.month, Number(r.total || 0)])
+  );
+
+  const purchasesMap = Object.fromEntries(
+    purchases.rows.map(r => [r.month, Number(r.total || 0)])
+  );
+
+  // Crear rango de los últimos 12 meses (aunque algún mes no tenga datos)
+  const now = new Date();
+  const months = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    months.push(`${y}-${m}`);
+  }
+
+  // Unir todo en un array final
+  const trend = months.map(month => {
+    const sales = salesMap[month] || 0;
+    const purchases = purchasesMap[month] || 0;
+    return {
+      month,
+      sales,
+      purchases,
+      net: sales - purchases
+    };
+  });
+
+  return trend;
+}

@@ -7,10 +7,12 @@ interface Props {
 
 const { products } = Astro.props;
 ---
+
 <div class="product-grid-container">
-  <div class="product-grid" id="product-grid"></div>
+  <div id="product-grid" class="product-grid"></div>
 </div>
 
+<!-- Exportamos los productos del servidor a JS -->
 <script id="all-products-data" type="application/json" set:html={JSON.stringify(products)}></script>
 
 <script>
@@ -22,133 +24,86 @@ const { products } = Astro.props;
   const allProductsData = document.getElementById('all-products-data');
 
   if (!productGrid || !allProductsData) {
-    console.error('Elementos no encontrados.');
+    console.error('No se encontró productGrid o allProductsData');
   } else {
-     const rawProducts = JSON.parse(allProductsData.textContent);
-     const allProducts = rawProducts.map((product: any) => ({
-      ...product,
-      price: Number(product.price),
-      stock: Number(product.stock),
-     
-    })) as BakeryItem[];
+    // 🔹 Aseguramos que products no se pierda en el parse
+    let allProducts: BakeryItem[] = [];
+    try {
+      allProducts = JSON.parse(allProductsData.textContent).map((p: any) => ({
+        ...p,
+        price: Number(p.price ?? 0),
+        stock: Number(p.stock ?? 0),
+        categoryId: String(p.categoryId ?? '').trim(), // siempre string
+      }));
+    } catch (err) {
+      console.error('Error parseando productos:', err);
+    }
 
     function renderProducts(filterCategoryId: string | null) {
       if (!productGrid) return;
       productGrid.innerHTML = '';
 
-      const filteredProducts = filterCategoryId === 'all' || !filterCategoryId
-        ? allProducts
-        : allProducts.filter(p => p.categoryId === filterCategoryId);
+      const normalized = filterCategoryId?.trim().toLowerCase() || 'all';
 
-      filteredProducts.forEach(product => {
+      const filtered = normalized === 'all'
+        ? allProducts
+        : allProducts.filter(p => p.categoryId.trim().toLowerCase() === normalized);
+
+      if (filtered.length === 0) {
+        productGrid.innerHTML = '<p>No products in this category.</p>';
+        return;
+      }
+
+      filtered.forEach(product => {
         const card = document.createElement('div');
         card.className = 'product-card';
         card.dataset.id = product.id;
-        
-        // Mostrar el stock y deshabilitar si está agotado
+
         if (product.stock === 0) {
-            card.classList.add('out-of-stock');
-            card.style.pointerEvents = 'none';
-            card.style.opacity = '0.5'; 
+          card.classList.add('out-of-stock');
+          card.style.pointerEvents = 'none';
+          card.style.opacity = '0.5';
         }
-        
-        const imageUrl = product.imageUrl && product.imageUrl.trim() !== ''
-              ? product.imageUrl
-              : "https://placehold.co/300x200?text=Sin+Imagen";
+
+        const imageUrl = product.imageUrl?.trim()
+          ? product.imageUrl
+          : 'https://placehold.co/300x200?text=Sin+Imagen';
 
         card.innerHTML = `
-        <div class="product-image-container">
-          <img src="${imageUrl}" alt="${product.name}" class="product-image" />
-        </div>
-        <div class="product-info">
-          <h3 class="product-name">${product.name}</h3>
-          <p class="product-price">₱ ${product.price.toFixed(2)}</p>
-          <p class="product-stock">Stock:${product.stock > 0 ? product.stock : 'Agotado'}</p>
-        </div>
-      `;
-          productGrid.appendChild(card);
+          <div class="product-image-container">
+            <img src="${imageUrl}" alt="${product.name}" class="product-image" />
+          </div>
+          <div class="product-info">
+            <h3 class="product-name">${product.name}</h3>
+            <p class="product-price">₱ ${product.price.toFixed(2)}</p>
+            <p class="product-stock">Stock: ${product.stock > 0 ? product.stock : 'Agotado'}</p>
+          </div>
+        `;
+
+        productGrid.appendChild(card);
       });
     }
 
+
+    // 🔹 Suscripción al store de categorías
     selectedCategory.subscribe(categoryId => {
       renderProducts(categoryId);
     });
 
+    // 🔹 Render inicial con todos los productos
+    renderProducts('all');
+
+    // 🔹 Delegación de clicks para el carrito
     productGrid.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
-      const productCard = target.closest('.product-card');
+      const card = (e.target as HTMLElement).closest('.product-card') as HTMLElement | null;
+      if (!card) return;
 
-      if (productCard) {
-        const htmlProductCard = productCard as HTMLElement;
-        const productId = htmlProductCard.dataset.id;
-        const product = allProducts.find(p => p.id === productId);
+      const productId = card.dataset.id; 
+      const product = allProducts.find(p => p.id === productId);
 
-        if (product) {
-          addItemToCart(product);
-        }
+      if (product) {
+        addItemToCart(product);
       }
     });
-
-    renderProducts(null);
   }
 </script>
-<!-- <style>
-.product-grid-container {
-  grid-column: 1 / 3;
-  grid-row: 2/3;
-  gap: 1rem;
-  overflow: auto;
-}
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 1rem;
-  padding: 1rem;
-}
-
-.product-card {
-  display: flex;
-  flex-direction: column;
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  width: 200px;      
-} 
-.product-image-container {
-  width: 100%;
-  height: 150px;      
-  overflow: hidden;
-}
-
-.product-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.product-info {
-  flex: 1;
-  padding: 0.5rem;
-  text-align: center;
-}
-
-.product-name {
-  font-size: 1rem;
-  margin: 0.3rem 0;
-}
-
-.product-price{
-  font-size: 0.9rem;
-  margin: 0;
-}
-.product-info .product-stock {
-  font-size: 50px !important;
-  margin: 0.2rem 0  !important;
-}
-
-.out-of-stock {
-  opacity: 0.6;
-  pointer-events: none;
-}
-</style> -->

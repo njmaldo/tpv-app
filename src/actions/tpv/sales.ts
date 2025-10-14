@@ -11,8 +11,8 @@ const SaleItemSchema = z.object({
 
 // Esquema completo de la venta
 const AddSaleInputSchema = z.object({
-  items: z.array(SaleItemSchema).min(1, "El carrito no puede estar vacío."),
-  totalAmount: z.number().min(0.01, "El monto total debe ser un número positivo."),
+  items: z.array(SaleItemSchema).min(1, "The cart cannot be empty."),
+  totalAmount: z.number().min(0.01, "The total amount must be a positive number."),
   paymentMethod: z.enum(["cash", "credit", "debit", "transfer", "gcash"]),
 });
 
@@ -41,7 +41,7 @@ export const addSale = defineAction({
 
         if (stock < item.quantity) {
           throw new Error(
-            `Stock insuficiente para el producto ${item.productId}. Disponible: ${stock}, solicitado: ${item.quantity}`,
+            `Insufficient stock for the product ${item.productId}. Available: ${stock}, Required: ${item.quantity}`,
           );
         }
       }

@@ -4,19 +4,26 @@ import { actions } from "astro:actions";
 import ProductModal from "@/components/ui/ProductModal.astro";
 import ProductForm from "@/components/forms/ProductForm.astro";
 import tursoClient from "@/lib/turso";
-import { getCategories } from "@/actions/products/categories";
-import { getLowStock,getActiveInactiveProducts,getTotalProducts, getProducts } from "@/lib/reportes";
+import {
+  getLowStock,
+  getActiveInactiveProducts,
+  getTotalProducts,
+  getProducts,
+} from "@/lib/reportes";
 import SearchInput from "../SearchInput.astro";
 
 const session = await getSession(Astro.request);
 const { user } = session ?? {};
 
-const categories = await getCategories();
+const catResult = await Astro.callAction(actions.listCategories, undefined);
+const categories = catResult.data?.data ?? [];
 
 let products: any[] = [];
 try {
-  const rs = await tursoClient.execute("SELECT * FROM bakery_items ORDER BY createdAt DESC");
-  products = (rs.rows as any[]).map(p => {
+  const rs = await tursoClient.execute(
+    "SELECT * FROM bakery_items ORDER BY createdAt DESC",
+  );
+  products = (rs.rows as any[]).map((p) => {
     const created = new Date(p.createdAt);
     const diffDays = (Date.now() - created.getTime()) / (1000 * 60 * 60 * 24);
     return {
@@ -29,48 +36,55 @@ try {
 }
 
 const url = Astro.url;
-const editProductId = url.searchParams.get('edit');
-const createMode = url.searchParams.has('create');
+const editProductId = url.searchParams.get("edit");
+const createMode = url.searchParams.has("create");
 
 let editingProduct = null;
 if (editProductId) {
-  editingProduct = products.find(p => p.id === editProductId);
+  editingProduct = products.find((p) => p.id === editProductId);
 }
 
 const showModal = !!editingProduct || createMode;
 
-const {total} = await getTotalProducts();
-const {inactivos} = await getActiveInactiveProducts();
-const {activos} = await getActiveInactiveProducts();
+const { total } = await getTotalProducts();
+const { inactivos } = await getActiveInactiveProducts();
+const { activos } = await getActiveInactiveProducts();
 const lowStock = await getLowStock();
 ---
 
-<section>
-  <div class="admin-header">
-  <h1>Products</h1>
-  <!-- Input de búsqueda -->
-  <SearchInput id="product-search" placeholder="Search products..."/>
-  <div class="header-actions">
-    <!-- Botón crear producto -->
-    <a href={`${Astro.url.pathname}?create=true`} class="btn btn--primary" type="button">
-      + Create Product
-    </a>
+<section class="dashboard">
+  <div class="dashboard-header">
+    <h2>Products</h2>
+    <!-- Input de búsqueda -->
+    <SearchInput  id="search-products" placeholder="Search products..." data-target=".table-products" />
+
+    <div class="header-actions">
+      <!-- Botón crear producto -->
+      <a href={`${Astro.url.pathname}?create=true`} class="btn btn-primary" type="button" >
+        + Create Product
+      </a>
+      <!-- Botón crear categoría -->
+      <a href="/admin/categorias" class="btn btn-primary" type="button">
+        Manage Categories
+      </a>
+    </div>
   </div>
-</div>
-  
+
   <div class="dashboard-cards">
     <div class="card total">
-      <h3>📦 Total Products </h3>
+      <h3>📦 Total Products</h3>
       <p>{total}</p>
     </div>
-  
+
     <div class="card bajo-stock">
       <h3>🔻 Low Stock</h3>
       {
         lowStock.length > 0 ? (
           <ul>
             {lowStock.map((p) => (
-              <li class="stock">{p.name}: {p.stock} units</li>
+              <li class="stock">
+                {p.name}: {p.stock} units
+              </li>
             ))}
           </ul>
         ) : (
@@ -78,20 +92,20 @@ const lowStock = await getLowStock();
         )
       }
     </div>
-  
+
     <div class="card activos">
       <h3>🟢 Actives</h3>
       <p>{activos}</p>
     </div>
-  
+
     <div class="card inactivos">
       <h3>⚪ Inactives</h3>
       <p>{inactivos}</p>
     </div>
   </div>
-  
+
   <div class="table-responsive">
-    <table class="table-products">
+    <table class="table table-products">
       <thead>
         <tr>
           <th>Image</th>
@@ -104,301 +118,243 @@ const lowStock = await getLowStock();
         </tr>
       </thead>
       <tbody>
-        {products.map((p) => (
-          <tr>
-            <td>
-              {p.imageUrl
-                ? <img src={p.imageUrl} alt={p.name} width="40" height="40" style="object-fit:cover;border-radius:5px" />
-                : "—"}
-            </td>
-            <td>
-              {p.name}
-              {p.isNew && <span class="badge-new">New</span>}
-            </td>
-            <td>${Number(p.price).toFixed(2)}</td>
-            <td>{categories.find(c => c.id === p.categoryId)?.name || "—"}</td>
-            <td class={p.isActive ? 'status-active' : 'status-inactive'}>
-              {p.isActive ? "✅" : "❌"}
-            </td>
-            <td>
-              <div class="dropdown">
-                <button class="btn-icon" type="button" aria-haspopup="true">⋮</button>
-                <div class="dropdown-menu hidden" role="menu">
-                  <a href={`${Astro.url.pathname}?edit=${p.id}`} class="dropdown-item">Edit</a>
-                  <form action={actions.toggleActive} method="post">
-                    <input type="hidden" name="id" value={p.id} />
-                    <input type="hidden" name="isActive" value={p.isActive ? "0" : "1"} />
-                    <button type="submit" class="dropdown-item">
-                      {p.isActive ? "Deactivate" : "Activate"}
-                    </button>
-                  </form>
-                  <form action={actions.deleteBakeryItem} method="post" onsubmit="return confirm('¿Delete this product?')">
-                    <input type="hidden" name="id" value={p.id} />
-                    <button type="submit" class="btn dropdown-item danger">Delete</button>
-                  </form>
+        {
+          products.map((p) => (
+            <tr>
+              <td>
+                {p.imageUrl ? (
+                  <img
+                    src={p.imageUrl}
+                    alt={p.name}
+                    width="40"
+                    height="40"
+                    style="object-fit:cover;border-radius:5px"
+                  />
+                ) : (
+                  "—"
+                )}
+              </td>
+              <td>
+                {p.name}
+                {p.isNew && <span class="badge-new">New</span>}
+              </td>
+              <td>${Number(p.price).toFixed(2)}</td>
+              <td>
+                {categories.find((c) => c.id === p.categoryId)?.name || "—"}
+              </td>
+              <td class={p.isActive ? "status-active" : "status-inactive"}>
+                {p.isActive ? "✅" : "❌"}
+              </td>
+              <td>
+                <div class="dropdown">
+                  <button class="btn-icon" type="button" aria-haspopup="true">⋮</button>
+                  <div class="dropdown-menu hidden" role="menu">
+                    <a
+                      href={`${Astro.url.pathname}?edit=${p.id}`}
+                      class="dropdown-item"
+                    >
+                      Edit
+                    </a>
+                    <form action={actions.toggleActive} method="post">
+                      <input type="hidden" name="id" value={p.id} />
+                      <input
+                        type="hidden"
+                        name="isActive"
+                        value={p.isActive ? "0" : "1"}
+                      />
+                      <button type="submit" class="dropdown-item">
+                        {p.isActive ? "Deactivate" : "Activate"}
+                      </button>
+                    </form>
+                    <form
+                      action={actions.deleteBakeryItem}
+                      method="post"
+                      onsubmit="return confirm('¿Delete this product?')"
+                    >
+                      <input type="hidden" name="id" value={p.id} />
+                      <button type="submit" class="btn dropdown-item danger">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
                 </div>
-              </div>
-            </td>
-          </tr>
-        ))}
+              </td>
+            </tr>
+          ))
+        }
       </tbody>
     </table>
   </div>
 </section>
 
-  
-
-  {showModal && (
-      <ProductModal id="productModal" title={editingProduct ? "Edit Product" : "Add Product"}>
-        <ProductForm 
-          categories={categories} 
-          product={editingProduct}
-        />
+{
+  showModal && (
+    <ProductModal
+      id="productModal"
+      title={editingProduct ? "Edit Product" : "Add Product"}
+    >
+      <ProductForm categories={categories} product={editingProduct} />
     </ProductModal>
-  )}
-
+  )
+}
 
 <style>
-.dashboard-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  padding: 0.75rem;
-}
 
-.card {
-  background: #fff;
-  border-radius: 12px;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
+  .total {
+    border-left: 6px solid #3b82f6;
+  }
+  .bajo-stock {
+    border-left: 6px solid #ef4444;
+  }
+  .activos {
+    border-left: 6px solid #22c55e;
+  }
+  .inactivos {
+    border-left: 6px solid #9ca3af;
+  }
 
-.total { 
-  border-left: 6px solid #3b82f6; 
-}
-.bajo-stock { 
-  border-left: 6px solid #ef4444; 
-}
-.activos { 
-  border-left: 6px solid #22c55e; 
-}
-.inactivos { 
-  border-left: 6px solid #9ca3af; 
-}
+  .badge-new {
+    background: #2563eb;
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 999px;
+    margin-left: 6px;
+    font-weight: 600;
+  }
 
-.card h3 {
-  font-size: 1rem;
-  margin-bottom: .5rem;
+.dashboard-header .header-actions {
+  display: flex;
+  gap: 0.5rem;
 }
-.card p {
-  font-size: 1.5rem;
-  font-weight: bold;
+@media (max-width: 1024px) {
+  /* Header con más espacio vertical */
+  .dashboard-header {
+    /* flex-wrap: wrap; */
+    gap: 1rem;
+  }
+@media (max-width: 820px) {
+  .dashboard-header {
+    /* flex-direction: column;
+    align-items: stretch; */
+  }
+
+  .btn-primary {
+    padding: 0.1px 0.1px;
+  }
+
+  .dashboard-header .header-actions {
+    /* justify-content: center;
+    flex-wrap: wrap; */
+    gap: 0.5rem;
+  }
+
+  /* Cards siguen en 2 columnas, pero centradas */
+  .dashboard-cards {
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+    /* justify-items: center; */
+  }
+
+  /* Tabla ocupa todo el ancho con scroll si es necesario */
+  .table-responsive table {
+    width: 100%;
+    min-width: 600px;
+  }
+  .search-input {
+
+  }
 }
+@media (max-width: 640px) {
+  /* Header apilado */
+  .dashboard-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  /* Input de búsqueda full width */
+  .dashboard-header .search-input {
+    width: 100%;
+  }
+
+  /* Botones apilados o en fila si entran */
+  .dashboard-header .header-actions {
+    display: flex;
+    /* flex-direction: column; */
+    gap: 0.5rem;
+  }
+
+  /* Cards en 2 columnas (2x2) */
+  .dashboard-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  /* Cards: 2 columnas en lugar de 4 */
+  .dashboard-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .btn-primary {
+    padding: 5px 10px;
+  }
+}
+@media (max-width: 400px) {
+    .dashboard-cards {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Tabla: scroll horizontal y tamaño mínimo */
   .table-responsive {
     overflow-x: auto;
+  }
+
+  .table-responsive table {
     width: 100%;
-    padding: 0.75rem;
+    min-width: 480px;
   }
-
-  .table-products {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: sans-serif;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-  }
-
-  .table-products thead {
-    background-color: #f7f8fa; 
-  }
-
-  .table-products th {
-    padding: 1rem 1.25rem; 
-    font-weight: 600;
-    text-align: left;
-    color: #444;
-    text-transform: capitalize;
-    font-size: 0.95rem;
-    border-bottom: 2px solid #ddd;
-    background-color: #f0f0f0;
-  }
-
-  .table-products td {
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid #eee;
-    color: #333;
-    vertical-align: middle;
-  }
-
-  /* "bandas de cebra" para mejorar la lectura */
-  .table-products tbody tr:nth-child(even) {
-    background-color: #fafafa;
-  }
-  
-  .table-products tbody tr:hover {
-    background-color: #f0f0f0;
-  }
-
-  .table-products img {
-    border-radius: 6px;
-    object-fit: cover;
-    border: 1px solid #ddd;
-  }
-  .stock {
-    text-align: start;
-  }
-  .badge-new {
-  background: #2563eb; 
-  color: white;
-  font-size: 0.7rem;
-  padding: 2px 6px;
-  border-radius: 999px;
-  margin-left: 6px;
-  font-weight: 600;
-}
-  /* Activo/Inactivo */
-  .status-active {
-    color: #28a745; /* Verde */
-    font-weight: bold;
-  }
-
-  .status-inactive {
-    color: #dc3545; /* Rojo */
-    font-weight: bold;
-  }
-
-   /* "Create Product"  */
-  .btn--primary {
-    padding: 12px 24px;
-    border-radius: 8px;
-    color: white;
-    font-weight: 600;
-    text-decoration: none;
-    background-image: linear-gradient(to right, #f7931e, #f46214);
-    box-shadow: 0 4px 10px rgba(247, 147, 30, 0.3);
-    transition: all 0.2s ease-in-out;
-  }
-
-  .btn--primary:hover {
-    box-shadow: 0 6px 15px rgba(247, 147, 30, 0.4);
-    transform: translateY(-2px);
-  }
-
-  .btn--primary:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(247, 147, 30, 0.2);
-  }
-
-  /* El resto de tus estilos para el header, dropdown, etc. */
-  .admin-header { 
-    display:flex; 
-    justify-content:space-between; 
-    align-items:center; 
-    padding-inline:1rem; 
-    padding-top: 0.5rem;
-  }
-  
-  .header-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  /* flex: 1;  */
-  max-width: 600px;
 }
 
-  .table-products { 
-    width:100%; 
-    border-collapse:collapse; 
-  }
-  .table-products th, 
-  .table-products td { 
-    padding:.5rem .75rem; 
-    border-bottom:1px solid #eee; 
-    text-align:left; 
-    vertical-align:middle; 
-  }
-  .btn-icon { 
-    background:none; 
-    border:none; 
-    cursor:pointer; 
-    font-size:1.1rem; 
-    padding:.25rem .5rem; 
-  }
-  .dropdown { 
-    position:relative; 
-    display:inline-block; 
-  }
-  .dropdown-menu { 
-    position:absolute; 
-    right:0; 
-    top:100%; 
-    min-width:170px; 
-    background:#fff; 
-    border:1px solid #e6e6e6; 
-    border-radius:5px; 
-    box-shadow:0 8px 24px rgba(0,0,0,.06); 
-    z-index:40; 
-    padding:.25rem 0; 
-  }
-  .dropdown-menu.hidden { 
-    display:none; 
-  }
-  .dropdown-item { 
-    display:block; 
-    width:100%; 
-    padding:.5rem .9rem; 
-    background:none; 
-    border:none; 
-    text-align:left; 
-    cursor:pointer; 
-    font-size:.95rem; 
-  }
-  .dropdown-item:hover { 
-    background:#f7f7f7; 
-  }
-  .dropdown-item.danger { 
-    color:#c62828; 
-  }
-  img[width="40"] { 
-    display:block; 
-  }
 </style>
 
+
 <script is:inline>
-  // Script para manejar el dropdown y el modal
+
   const modal = document.getElementById("productModal");
+
   if (modal) {
     window.addEventListener("load", () => {
       // Abre el modal si los parámetros de URL están presentes
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.has('edit') || urlParams.has('create')) {
+      if (urlParams.has("edit") || urlParams.has("create")) {
         modal.classList.add("open");
       }
     });
 
     // Cerrar modal y limpiar URL
-    window.closeModal = function() {
+    window.closeModal = function () {
       modal.classList.remove("open");
       const newUrl = new URL(window.location.href);
-      newUrl.searchParams.delete('edit');
-      newUrl.searchParams.delete('create');
-      window.history.pushState({}, '', newUrl.toString());
+      newUrl.searchParams.delete("edit");
+      newUrl.searchParams.delete("create");
+      window.history.pushState({}, "", newUrl.toString());
     };
   }
-
   // Lógica para el dropdown
   document.addEventListener("click", (e) => {
     const toggle = e.target.closest(".btn-icon");
     if (toggle) {
       const wrapper = toggle.closest(".dropdown");
       const menu = wrapper.querySelector(".dropdown-menu");
-      document.querySelectorAll(".dropdown-menu").forEach(m => { if (m !== menu) m.classList.add("hidden"); });
+      document.querySelectorAll(".dropdown-menu").forEach((m) => {
+        if (m !== menu) m.classList.add("hidden");
+      });
       menu.classList.toggle("hidden");
       return;
     }
     if (!e.target.closest(".dropdown")) {
-      document.querySelectorAll(".dropdown-menu").forEach(m => m.classList.add("hidden"));
+      document
+        .querySelectorAll(".dropdown-menu")
+        .forEach((m) => m.classList.add("hidden"));
     }
   });
 
@@ -408,5 +364,5 @@ const lowStock = await getLowStock();
       window.closeModal();
     }
   });
-  
-</script> 
+
+</script>

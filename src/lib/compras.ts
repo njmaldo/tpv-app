@@ -263,3 +263,43 @@ export async function getTopSuppliers(limit = 5) {
     return [];
   }
 }
+// Evolucion mensual de compras (últimos 12 meses)
+export async function getMonthlyPurchasesTrend() {
+  try {
+    const result = await tursoClient.execute(`
+      SELECT 
+        strftime('%Y-%m', REPLACE(REPLACE(purchaseDate, 'T', ' '), 'Z', '')) AS month,
+        SUM(total) AS total
+      FROM purchases
+      WHERE date(purchaseDate) >= date('now', '-12 months')
+      GROUP BY month
+      ORDER BY month ASC;
+    `);
+
+    // Crear mapa de resultados para meses sin datos
+    const purchasesMap = Object.fromEntries(
+      result.rows.map(r => [r.month, Number(r.total || 0)])
+    );
+
+    // Generar rango de los últimos 12 meses
+    const now = new Date();
+    const months = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      months.push(`${y}-${m}`);
+    }
+
+    // Combinar resultados
+    const trend = months.map(month => ({
+      month,
+      total: purchasesMap[month] || 0
+    }));
+
+    return trend;
+  } catch (err) {
+    console.error("Error en getMonthlyPurchasesTrend:", err);
+    return [];
+  }
+}

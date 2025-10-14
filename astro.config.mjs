@@ -13,6 +13,11 @@ export default defineConfig({
       },
     },
   },
+  image: {
+    service: {
+      entrypoint: 'astro/services/image/noop', // Desactiva el servicio en runtime
+    },
+  },
   output: 'server',
   adapter: cloudflare(),
   integrations: [

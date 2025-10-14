@@ -1,17 +1,18 @@
 ---
-interface Props {
-  placeholder?: string;
-  id?: string;
-}
-
-const { placeholder = "Search...", id = "search-input" } = Astro.props;
+const { id, placeholder, ...rest } = Astro.props;
 ---
 
-<input type="text" id={id} class="search-input" placeholder={placeholder} />
+<input
+  id={id}
+  type="text"
+  class="search-input"
+  placeholder={placeholder}
+  {...rest}
+/>
+
 <style>
     .search-input {
   width: 350px;
-  min-height: 26px;
   padding: 0.5rem 0.75rem;
   border: 1px solid #ddd;
   border-radius: 6px;
@@ -25,8 +26,81 @@ const { placeholder = "Search...", id = "search-input" } = Astro.props;
 }
 
 </style>
+<!-- <script>
+  (function () {
+  function initSearch(input) {
+    const targetSelector = input.dataset.target || ".table" ;
+    const tbody = document.querySelector(`${targetSelector} tbody`);
 
-<script is:inline>
+    if (!tbody) {
+      console.warn(`Search: tbody no encontrado para selector "${targetSelector}".`);
+      return;
+    }
+
+    let rows = Array.from(tbody.querySelectorAll("tr"));
+    const updateRows = () => { rows = Array.from(tbody.querySelectorAll("tr")); };
+
+    const mo = new MutationObserver((mutations) => {
+      if (mutations.length) updateRows();
+    });
+    mo.observe(tbody, { childList: true });
+
+    const normalize = (s) => (s || "").replace(/\s+/g, " ").trim().toLowerCase();
+
+    input.addEventListener("input", (e) => {
+      const q = normalize(e.target.value);
+      if (!q) {
+        rows.forEach(r => r.style.display = "");
+        return;
+      }
+      rows.forEach(r => {
+        const text = normalize(r.textContent);
+        r.style.display = text.includes(q) ? "" : "none";
+      });
+    });
+
+    window.addEventListener("keydown", (ev) => {
+      const active = document.activeElement;
+      const typing = active && (
+        active.tagName === "INPUT" ||
+        active.tagName === "TEXTAREA" ||
+        active.isContentEditable
+      );
+      if (typing) return;
+
+      const isMac = navigator.platform.toUpperCase().includes("MAC");
+      if ((isMac ? ev.metaKey : ev.ctrlKey) && ev.key.toLowerCase() === "k") {
+        ev.preventDefault();
+        input.focus();
+        input.select();
+      }
+      if (ev.key === "/") {
+        ev.preventDefault();
+        input.focus();
+        input.select();
+      }
+    });
+
+    // console.log(`Search inicializado para ${targetSelector}, ${rows.length} filas.`);
+  }
+
+  function initAllSearchInputs() {
+    const inputs = document.querySelectorAll("input[data-target]");
+    if (!inputs.length) return;
+
+    inputs.forEach(initSearch);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initAllSearchInputs);
+  } else {
+    initAllSearchInputs();
+  }
+})();
+
+</script> -->
+
+<!-- <script is:inline>
 
   (function () {
   // Inicializador: busca input y tbody y conecta el comportamiento
@@ -100,4 +174,4 @@ const { placeholder = "Search...", id = "search-input" } = Astro.props;
     initProductSearch();
   }
 })();
-</script>
+</script> -->

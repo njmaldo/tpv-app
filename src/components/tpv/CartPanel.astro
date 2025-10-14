@@ -1,9 +1,25 @@
 ---
 import ProductModal from "../ui/ProductModal.astro";
+import { getEmployees } from "@/actions/tpv/employees";
+import { getSession } from "auth-astro/server";
+
+const session = await getSession(Astro.request);
+const serverUser = session?.user ?? null;
+const userJson = JSON.stringify(serverUser ?? null);
+
+const isAdmin: boolean = serverUser?.role === "admin";
+
+let employees: User[] = [];
+if (isAdmin) {
+  employees = await getEmployees();
+}
 ---
 
 <aside class="tpv-cart" aria-label="Carrito">
-  <h2>Cash Register</h2>
+  <div class="tpv-cart__header">
+    <h2>Cash Register</h2>
+    <button class="tpv-cart__close" aria-label="Cerrar carrito">×</button>
+  </div>
   <ul class="tpv-cart__list" id="tpv-cart-list" aria-live="polite"></ul>
   <div class="tpv-cart__footer">
     <div class="tpv-cart__total">
@@ -52,17 +68,10 @@ import ProductModal from "../ui/ProductModal.astro";
         <span class="label">Gcash</span>
       </label>
     </div>
-    <!-- <div class="payment-methods">
-  <button class="payment-btn" data-method="cash">Cash</button>
-  <button class="payment-btn" data-method="credit">Credit</button>
-  <button class="payment-btn" data-method="debit">Debit</button>
-  <button class="payment-btn" data-method="transfer">Transfer</button>
-  <button class="payment-btn" data-method="gcash">Gcash</button>
-</div> -->
     <!-- Botones de  -->
     <div class="tpv-cart__actions">
       <button type="button" class="btn btn-outline" id="tpv-clear-cart"
-        >Empty</button
+        >Clear</button
       >
       <button type="button" class="btn btn-primary" id="tpv-checkout"
         >Checkout</button
@@ -70,166 +79,127 @@ import ProductModal from "../ui/ProductModal.astro";
     </div>
   </div>
 </aside>
-<!-- Modal -->
-<div id="cashClosureModal" class="modal">
-  <div class="modal-content">
-    <h2>Cash Closing</h2>
-    <form id="cashClosureForm">
-      <div class="form-group">
-        <label for="declaredCash">Declared Cash (counted by cashier)</label>
-        <input type="number" id="declaredCash" name="declaredCash" step="0.01" required />
-      </div>
-      <div class="form-group">
-        <label for="notes">Notes</label>
-        <textarea id="notes" name="notes"></textarea>
-      </div>
-      <button type="submit">Confirm Closing</button>
-    </form>
-    <div id="cashClosureSummary" class="summary"></div>
-  </div>
-</div>
-<!-- Script Fucnonando -->
-<!-- <script>
-  import {cart,clearCart,removeItemFromCart,updateItemQuantity,} from "@/stores/cart";
+<!-- btn para mobiles -->
+<button class="floating-cart-btn" data-count="0">🛒</button>
+<!-- Modal Open Shift-->
+<ProductModal id="openShiftModal" title="Open Shift">
+  <form id="openShiftForm" class="open-shift-form">
+
+  <label for="userSelect">User:</label>
+  <select name="userId" id="userSelect">
+    {serverUser ? (
+      <option value={serverUser.id} selected>
+        {serverUser.name ?? serverUser.email}
+      </option>
+    ) : (
+      <option value="" disabled selected>
+        Select a user
+      </option>
+    )}
+
+    {isAdmin && employees.length > 0 && (
+      <optgroup label="Empleados">
+        {employees.map((emp) => (
+          <option value={emp.id} selected={emp.id === serverUser?.id}>
+            {emp.name}
+          </option>
+        ))}
+      </optgroup>
+    )}
+  </select>
+  <div class="shift-wrapper">
+      <!-- No hay turno abierto -->
+      <select id="shiftSelect" >
+        <option value="morning">Morning</option>
+        <option value="evening">Evening</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="declaredCashInput" class="form-label">
+        Declared Cash (counted by cashier)
+      </label>
+      <input
+        type="number"
+        id="declaredCashInput"
+        name="declaredCash"
+        class="form-input"
+        step="0.01"
+        min="0"
+        placeholder="0.00"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="notesInput" class="form-label">Notes (optional)</label>
+      <textarea
+        id="notesInput"
+        name="notes"
+        class="form-textarea"
+        placeholder="Any observations..."
+        rows="3"></textarea>
+    </div>
+    <div class="form-actions">
+      <button type="submit" id="btn-confirm-open" class="btn btn-primary">
+        Confirm Shift Opening
+      </button>
+    </div>
+  </form>
+</ProductModal>
+<!-- End Modal Open Shift-->
+<!-- Close Modal Shift-->
+<ProductModal id="closeShiftModal" title="Close Shift ">
+  <form id="cashClosureForm">
+    <div  class="form-group">
+      <label for="shiftInput">Shift</label>
+      <input type="text" id="shiftInput" readonly />
+    </div>
+    <div  class="form-group">
+      <label for="userInput">User</label>
+      <input type="text" id="userInput" readonly />
+    </div>
+    <div class="form-group">
+      <label for="declaredCash">Declared Cash (counted by cashier)</label>
+      <input
+        type="number"
+        id="declaredCash"
+        name="declaredCash"
+        step="0.01"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="notes">Notes</label>
+      <textarea id="notes" name="notes"></textarea>
+    </div>
+    <button id="confirmClosingBtn" class='btn btn-primary' type="button">Confirm shift Closure</button>
+  </form>
+  <div id="cashClosureSummary" class="summary"></div>
+</ProductModal>
+<!--End Close Modal Shift-->
+
+<!-- Script Actual -->
+<script id="user-data" type="application/json" set:html={userJson}></script>
+<script >
+  
+  import {cart,clearCart,removeItemFromCart,updateItemQuantity} from "@/stores/cart";
   import { actions } from "astro:actions";
   import type { CartItem } from "@/stores/cart";
-  
-  const cartList = document.getElementById("tpv-cart-list");
-  const cartTotal = document.getElementById("tpv-cart-total");
-  const clearButton = document.getElementById("tpv-clear-cart");
-  const checkoutButton = document.getElementById("tpv-checkout");
 
-  function renderCart(currentCart: readonly CartItem[]) {
-    if (!cartList || !cartTotal) return;
-    cartList.innerHTML = "";
-    if (currentCart.length === 0) {
-      const emptyMessage = document.createElement("li");
-      emptyMessage.className = "tpv-cart__empty";
-      emptyMessage.textContent = "The cart is empty";
-      cartList.appendChild(emptyMessage);
-      cartTotal.textContent = "₱ 0.00";
-    } else {
-      let currentTotal = 0;
-      currentCart.forEach((item) => {
-        const li = document.createElement("li");
-        li.className = "tpv-cart__item";
-        li.innerHTML = `
-        <div class="tpv-cart__item-info">
-          <div class="product-details">
-              <span>${item.name}</span>
-              <strong class="price">₱ ${(item.price * item.quantity).toFixed(2)}</strong>
-            </div>
-          </div>
-          <div class="tpv-cart__item-controls">
-            <input
-              type="number"
-              class="quantity-input"
-              data-id="${item.id}"
-              value="${item.quantity}"
-              min="1"
-              aria-label="Cantidad de ${item.name}"
-            />
-            <button
-              type="button"
-              class="btn-remove"
-              data-id="${item.id}"
-              aria-label="Eliminar producto"
-              >
-              &times;
-            </button>
-          </div>
-          `;
-          cartList.appendChild(li);
-          currentTotal += item.price * item.quantity;
-        });
-        cartTotal.textContent = `₱ ${currentTotal.toFixed(2)}`;
-      }
+  const el = document.getElementById("user-data") as HTMLScriptElement;
+  let userData: any = null;
+
+  if (el?.textContent) {
+    try {
+      userData = JSON.parse(el.textContent);
+    } catch (err) {
+      console.error("Error parseando user-data:", err);
     }
-
-  cart.subscribe((newCart) => {
-    renderCart(newCart);
-  });
+  }
+  if (!userData || !userData.id) {
+    showToast("Usuario no encontrado ❌", "error");
+    throw new Error("No hay sesión válida");
+  }
   
-  if (cartList) {
-    cartList.addEventListener("change", (e) => {
-      const target = e.target as HTMLInputElement;
-      if (target.classList.contains("quantity-input")) {
-        const itemId = target.dataset.id;
-        const newQuantity = parseInt(target.value, 10);
-        if (itemId && !isNaN(newQuantity) && newQuantity > 0) {
-          updateItemQuantity(itemId, newQuantity);
-        }
-      }
-    });
-    cartList.addEventListener("click", (e) => {
-      const target = e.target as HTMLButtonElement;
-      if (target.classList.contains("btn-remove")) {
-        const itemId = target.dataset.id;
-        if (itemId) {
-          removeItemFromCart(itemId);
-        }
-      }
-    });
-  }
-
-  if (clearButton) {
-    clearButton.addEventListener("click", () => {
-      clearCart();
-    });
-  }
-
-  if (checkoutButton) {
-    checkoutButton.addEventListener("click", async () => {
-      const currentCart = cart.get();
-
-      if (currentCart.length === 0) {
-        alert("Your cart is empty. Please add products before checking out.");
-        return;
-      }
-
-      const items = currentCart.map((item) => ({
-        productId: item.id,
-        quantity: item.quantity,
-        price: item.price,
-      }));
-
-      const totalAmount = currentCart.reduce(
-        (acc, item) => acc + item.price * item.quantity,
-        0,
-      );
-
-      const result = await actions.addSale({ items, totalAmount });
-
-      if (result.data) {
-        if (result.data.success) {
-          clearCart();
-          alert(result.data.message);
-        } else {
-          alert(result.data.message);
-        }
-      } else if (result.error) {
-        const errorMessage =
-          result.error.message || "Error desconocido al procesar la venta.";
-          alert(errorMessage);
-          console.error("Error de acción:", result.error);
-      }
-    });
-  }
-
-  renderCart(cart.get());
-</script> -->
-<!-- Script Fucnonando -->
-
-<script>
-  import {
-    cart,
-    clearCart,
-    removeItemFromCart,
-    updateItemQuantity,
-  } from "@/stores/cart";
-  import { actions } from "astro:actions";
-  import type { CartItem } from "@/stores/cart";
-
   const cartList = document.getElementById("tpv-cart-list");
   const cartTotal = document.getElementById("tpv-cart-total");
   const clearButton = document.getElementById("tpv-clear-cart");
@@ -238,6 +208,7 @@ import ProductModal from "../ui/ProductModal.astro";
   function renderCart(currentCart: readonly CartItem[]) {
     if (!cartList || !cartTotal) return;
     cartList.innerHTML = "";
+
     if (currentCart.length === 0) {
       const emptyMessage = document.createElement("li");
       emptyMessage.className = "tpv-cart__empty";
@@ -284,7 +255,22 @@ import ProductModal from "../ui/ProductModal.astro";
 
   cart.subscribe((newCart) => {
     renderCart(newCart);
-  });
+    // ---Integración del botón flotante ---
+  const floatingBtn = document.querySelector(".floating-cart-btn") as HTMLButtonElement;
+  const cartPanel = document.querySelector(".tpv-cart");
+
+  if (floatingBtn) {
+    const itemCount = newCart.length;
+    floatingBtn.dataset.count = itemCount.toString();
+
+    // mostrar solo si hay productos
+    if (itemCount > 0) {
+      floatingBtn.classList.add("visible");
+    } else {
+      floatingBtn.classList.remove("visible");
+    }
+  }
+});
 
   if (cartList) {
     cartList.addEventListener("change", (e) => {
@@ -319,17 +305,28 @@ import ProductModal from "../ui/ProductModal.astro";
       const currentCart = cart.get();
 
       if (currentCart.length === 0) {
-        alert("Your cart is empty. Please add products before checking out.");
+        showToast("Your cart is empty. Please add products before checking out.");
         return;
       }
+      // 2. Validación turno abierto
+    const shiftStatus = await actions.checkOpenShift()
+      .catch(err => {
+        console.error("❌ Error checking shift:", err);
+        showToast("There was an error verifying the shift. Try again.");
+        return null;
+      });
 
-      // 🔹 Buscar el método de pago correcto (name="payment")
+    if (!shiftStatus?.data?.open) {
+      showToast("No shift is open. Please open a shift before processing sales.");
+      return;
+    }
+      // Buscar el método de pago correcto (name="payment")
       const selectedPayment = document.querySelector<HTMLInputElement>(
         'input[name="payment"]:checked',
       )?.value as "cash" | "credit" | "debit" | "transfer" | "gcash";
 
       if (!selectedPayment) {
-        alert("Please select a payment method.");
+        showToast("Please select a payment method.");
         return;
       }
 
@@ -340,11 +337,9 @@ import ProductModal from "../ui/ProductModal.astro";
       }));
 
       const totalAmount = currentCart.reduce(
-        (acc, item) => acc + item.price * item.quantity,
-        0,
-      );
+        (acc, item) => acc + item.price * item.quantity, 0, );
 
-      // 🔹 Enviar venta con método de pago
+      //  Enviar venta con método de pago
       const result = await actions.addSale({
         items,
         totalAmount,
@@ -368,133 +363,189 @@ import ProductModal from "../ui/ProductModal.astro";
 
   renderCart(cart.get());
 
-  // Cierre de caja
-document.addEventListener("DOMContentLoaded", () => {
-  const closeShiftBtn = document.querySelector<HTMLButtonElement>(".btn-close-shift");
-  const modal = document.getElementById("cashClosureModal") as HTMLElement;
+  //Apertura y Cierre de caja | checkea si existe un cierre, si hay muestra el msj sino abre modal
+  document.addEventListener("DOMContentLoaded", () => {
+    // --- Variables compartidas ---
+  const loggedUser = {userData};
+  if (!loggedUser) return;
+
+  if (!userData?.id) {
+  showToast("Usuario no encontrado ❌", "error");
+  return;
+  }
+  const userId = userData?.id;
+
+  // --- Apertura de turno ---
+  const btnOpenShift = document.getElementById("btn-open-shift") as HTMLButtonElement;
+  const openShiftForm = document.getElementById("openShiftForm") as HTMLFormElement;
+  const openShiftModal = document.getElementById("openShiftModal") as HTMLElement;
+
+  btnOpenShift?.addEventListener("click", async () => {
+    try {
+      const check = await actions.checkOpenShift();
+
+      if (check.data?.open) {
+        showToast(`There is already an open shift: ${check.data.shift} ✅`, "error");
+        return;
+      }
+
+      openShiftModal?.classList.add("open");
+    } catch (err) {
+      console.error("Error verifying open shift:", err);
+      showToast("Error verifying open shift.", "error");
+    }
+  });
+
+  openShiftForm?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    const declaredCash = parseFloat((document.getElementById("declaredCashInput") as HTMLInputElement)?.value) || 0;
+    const notes = (document.getElementById("notesInput") as HTMLTextAreaElement)?.value || "";
+
+    // Toma el turno del <select> dentro del formulario
+    const shiftSelect = document.getElementById("shiftSelect") as HTMLSelectElement;
+    const shift = shiftSelect?.value as "morning" | "evening"; // tipado literal
+
+    const result = await actions.openShift({
+      shift,
+      userId,
+      declaredCash,
+      notes,
+    });
+
+    if (result.data?.success) {
+      showToast("Shift opened successfully ✅", "success");
+      openShiftModal?.classList.remove("open");
+      openShiftForm.reset();
+    } else {
+      showToast("The shift could not be opened ❌", "error");
+    }
+  } catch (err) {
+    console.error("Error opening shift:", err);
+    showToast("Error opening shift ❌", "error");
+  }
+});
+
+
+  // --- Cierre de turno ---
+  const btnCashClosing = document.getElementById("btn-close-shift") as HTMLButtonElement;
+  const modalClosure = document.getElementById("closeShiftModal") as HTMLElement;
+  const modalInfo = document.getElementById("closureInfoModal") as HTMLElement;
   const summary = document.getElementById("cashClosureSummary") as HTMLElement;
 
-  if (!closeShiftBtn || !modal || !summary) return;
+  let salesSummaryData: any = null;
 
-  closeShiftBtn.addEventListener("click", async () => {
-    modal.style.display = "block";
+  btnCashClosing?.addEventListener("click", async () => {
+  try {
+    const data = await actions.checkCashClosure({ userId });
+    const { shift, open, closed, closure } = data.data as {
+      shift: string | null;
+      open: boolean;
+      closed: boolean;
+      closure?: { shift: string; user_id: string, user_name?: string, user_email?: string };
+    };
 
-    try {
-      // 🔹 llamamos al action que devuelve los totales
-      const result = await actions.getSalesSummary();
-
-      if (result.data?.success && result.data.data) {
-        const d = result.data.data;
-
-        summary.innerHTML = `
-          <p><strong>Total Cash:</strong> ₱ ${d.totalCash.toFixed(2)}</p>
-          <p><strong>Total Credit:</strong> ₱ ${d.totalCredit.toFixed(2)}</p>
-          <p><strong>Total Debit:</strong> ₱ ${d.totalDebit.toFixed(2)}</p>
-          <p><strong>Total Transfer:</strong> ₱ ${d.totalTransfer.toFixed(2)}</p>
-          <p><strong>Total GCash:</strong> ₱ ${d.totalGcash.toFixed(2)}</p>
-          <hr>
-          <p><strong>Total Sales:</strong> ₱ ${d.totalSales.toFixed(2)}</p>
-        `;
-      } else {
-        summary.innerHTML = `<p style="color:red;">❌ No se pudo cargar el resumen de ventas.</p>`;
-      }
-    } catch (e) {
-      console.error("❌ Error cargando resumen:", e);
-      summary.innerHTML = `<p style="color:red;">Error al consultar ventas.</p>`;
+    if (closed) {
+      showToast(`There is already a closure for the shift ${shift ?? "N/A"} ✅`, "success");
+      return;
     }
+    // 🔹 Completar inputs de solo lectura en el modal
+    (document.getElementById("shiftInput") as HTMLInputElement).value = shift ?? "";
+    (document.getElementById("userInput") as HTMLInputElement).value =
+      closure?.user_name ?? closure?.user_email ?? userId;
+
+    
+    // Mostrar turno actual en modal (solo lectura)
+    const shiftLabel = document.getElementById("shiftInput");
+    if (shiftLabel) shiftLabel.textContent = `Shift: ${shift ?? "N/A"}`;
+
+    modalClosure?.classList.add("open");
+
+    const summaryResult = await actions.getSalesSummary();
+
+    if (summaryResult.data?.success && summaryResult.data.data) {
+      salesSummaryData = summaryResult.data.data;
+      const d = salesSummaryData;
+
+      summary.innerHTML = `
+        <p><strong>Total Cash:</strong> ₱ ${d.totalCash.toFixed(2)}</p>
+        <p><strong>Total Credit:</strong> ₱ ${d.totalCredit.toFixed(2)}</p>
+        <p><strong>Total Debit:</strong> ₱ ${d.totalDebit.toFixed(2)}</p>
+        <p><strong>Total Transfer:</strong> ₱ ${d.totalTransfer.toFixed(2)}</p>
+        <p><strong>Total GCash:</strong> ₱ ${d.totalGcash.toFixed(2)}</p>
+        <hr>
+        <p><strong>Total Sales:</strong> ₱ ${d.totalSales.toFixed(2)}</p>
+      `;
+    } else {
+      summary.innerHTML = `<p style="color:red;">⚠️ ${summaryResult.data?.message || "The sales summary could not be loaded."}</p>`;
+    }
+    
+  } catch (err) {
+    console.error("Error al verificar cierre:", err);
+    showToast("Error verificando cierre de caja ❌", "error");
+  }
+});
+  // --- Guardar cierre ---
+  const btnConfirmClosing = document.getElementById("confirmClosingBtn") as HTMLButtonElement;
+
+  btnConfirmClosing?.addEventListener("click", async () => {
+    try {
+      btnConfirmClosing.disabled = true;
+
+      const declaredCash = Number((document.getElementById("declaredCash") as HTMLInputElement)?.value || 0);
+      const notes = (document.getElementById("notes") as HTMLTextAreaElement)?.value || "";
+
+      if (!salesSummaryData) {
+        showToast("No hay resumen cargado ❌", "error");
+        return;
+      }
+
+      const totalsToSend = {
+        totalCash: Number(salesSummaryData.totalCash.toFixed(2)),
+        totalCredit: Number(salesSummaryData.totalCredit.toFixed(2)),
+        totalDebit: Number(salesSummaryData.totalDebit.toFixed(2)),
+        totalTransfer: Number(salesSummaryData.totalTransfer.toFixed(2)),
+        totalGcash: Number(salesSummaryData.totalGcash.toFixed(2)),
+        totalSales: Number(salesSummaryData.totalSales.toFixed(2)),
+      };
+
+      const result = await actions.closeShift({ declaredCash, notes, totals: totalsToSend });
+
+      if (result.data?.success) {
+        showToast("The cash closing was correctly recorded ✅", "success");
+        modalClosure?.classList.remove("open");
+        (document.getElementById("cashClosureForm") as HTMLFormElement)?.reset();
+      } else {
+        showToast("Error en el cierre ❌", "error");
+      }
+    } catch (err) {
+      console.error("Error recording cash closing:", err);
+      showToast("There was a problem recording the cash closing", "error");
+    } finally {
+      btnConfirmClosing.disabled = false;
+    }
+  });
+  });
+  
+  // Boton flotante del carrito
+  // Maneja el botón flotante manualmente
+document.addEventListener("DOMContentLoaded", () => {
+  const floatingBtn = document.querySelector(".floating-cart-btn");
+  const cartPanel = document.querySelector(".tpv-cart");
+  const closeCartBtn = document.querySelector(".tpv-cart__close"); 
+  // Abre/cierra con el botón flotante
+  floatingBtn?.addEventListener("click", () => {
+    cartPanel?.classList.toggle("active");
+  });
+  // Cierra con la X
+  closeCartBtn?.addEventListener("click", () => {
+    cartPanel?.classList.remove("active");
   });
 });
 
-// const btnCloseShift = document.querySelector(".btn-close-shift");
-// const modal = document.getElementById("cashClosureModal");
-// const form = document.getElementById("cashClosureForm") as HTMLFormElement;
-// const summary = document.getElementById("cashClosureSummary");
 
-// if (btnCloseShift && modal && form) {
-//   btnCloseShift.addEventListener("click", () => {
-//     modal.classList.add("open");
-//   });
-
-//   form.addEventListener("submit", async (e) => {
-//     e.preventDefault();
-
-//     const declaredCash = parseFloat(
-//       (document.getElementById("declaredCash") as HTMLInputElement).value
-//     );
-//     const notes = (document.getElementById("notes") as HTMLTextAreaElement).value;
-
-//     const result = await actions.addCashClosure({
-//       shift: "Morning Shift", // aquí podrías usar turno real
-//       userId: "1",            // TODO: tomar user logueado
-//       declaredCash,
-//       notes,
-//     });
-
-//     if (result.data?.success && result.data.data) {
-//       const d = result.data.data;
-//       summary!.innerHTML = `
-//         <p><strong>Total Cash (system):</strong> ₱ ${d.totalCash.toFixed(2)}</p>
-//         <p><strong>Declared Cash:</strong> ₱ ${d.declaredCash.toFixed(2)}</p>
-//         <p><strong>Difference:</strong> ₱ ${d.diff.toFixed(2)}</p>
-//         <p><strong>Total Sales:</strong> ₱ ${d.totalSales.toFixed(2)}</p>
-//       `;
-//       form.reset();
-//     } else {
-//       summary!.innerHTML = `<p style="color:red;">❌ ${result.error?.message || result.data?.message}</p>`;
-//     }
-//   });
-// }
-
-// const closeShiftBtn = document.querySelector<HTMLButtonElement>(".btn-close-shift");
-
-// if (closeShiftBtn) {
-//   closeShiftBtn.addEventListener("click", async () => {
-//     // 🔹 Datos básicos (en real deberían venir de DB)
-//     const payload = {
-//       shift: "Morning",
-//       userId: "user-001",
-//       startTime: Date.now() - 4 * 60 * 60 * 1000, // hace 4h
-//       endTime: Date.now(),
-//       totalCash: 150.75,
-//       totalCredit: 200,
-//       totalDebit: 50.25,
-//       totalTransfer: 100,
-//       totalGcash: 80,
-//       totalSales: 581,
-//       declaredCash: 150,
-//       diff: -0.75,
-//       notes: "Cierre manual de prueba",
-//     };
-
-//     const result = await actions.addCashClosure(payload);
-
-//     if (result.data?.success) {
-//       showToast("✅ Cierre de caja registrado con éxito");
-//     } else {
-//       showToast("❌ Error al registrar el cierre");
-//     }
-//   });
-// }
-
-  
-  // Toast Notification
-  function showToast(message: string, type: "success" | "error" = "success") {
-    const container = document.getElementById("toast-container");
-    if (!container) return;
-
-    const toast = document.createElement("div");
-    toast.className = `toast ${type}`;
-    toast.textContent = message;
-
-    container.appendChild(toast);
-
-    // Remover después de la animación
-    setTimeout(() => {
-      toast.remove();
-    }, 4000);
-  }
 </script>
-
+<!-- end Script Actual -->
 <style>
   .methods-grid {
     display: grid;
@@ -509,17 +560,15 @@ document.addEventListener("DOMContentLoaded", () => {
     align-items: center;
     cursor: pointer;
     text-align: center;
-    padding: 0.75rem;
     border: 2px solid transparent;
-    border-radius: 0.6rem;
+    border-radius: 5px;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
     background: #fff;
   }
 
   .payment-card .icon {
-    font-size: 2rem; /* tamaño del emoji */
-    /* margin-bottom: 0.25rem; */
+    font-size: 2rem; 
   }
 
   .payment-card .label {
@@ -534,7 +583,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* Cuando el radio está seleccionado → aplicar highlight al label */
   .payment-card input:checked + .icon,
   .payment-card input:checked + .icon + .label {
-    color: #22c55e; /* tu color de branding */
+    color: black; 
     font-weight: bold;
   }
 
@@ -551,15 +600,47 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   .payment-card:has(input:checked) {
-    border-color: #22c55e;
+    border-color: #000;
     background: rgba(34, 197, 94, 0.1);
   }
   /* efecto de selección (cambia color del icono y label) */
   .payment-card input[type="radio"]:checked + .icon,
   .payment-card input[type="radio"]:checked + .icon + .label {
-    color: #22c55e;
+    color: #2563EB;
     font-weight: 600;
   }
+  /* Modal open shift */
+  .open-shift-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
 
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
 
+  .form-label {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  .form-input,
+  .form-textarea {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .btn-primary {
+    margin-top: 0.5rem;
+  }
+  
 </style>

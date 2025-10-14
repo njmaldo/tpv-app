@@ -1,5 +1,6 @@
 ---
 import '../styles/tpv.css';
+import '../styles/base.css';
 import ToolBar from '@/components/toolBar/ToolBar.astro';
 
 interface Props {
@@ -26,6 +27,7 @@ const { title = ' bakery TPV' } = Astro.props;
     <footer class="footer">
       <p>&copy; {new Date().getFullYear()} NX Bread & Coffee. All rights reserved.</p>
     </footer>
+    <script src="/js/toast.js" type="module"></script>
   </body>
 </html>
 

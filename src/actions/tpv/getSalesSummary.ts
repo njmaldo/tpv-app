@@ -1,79 +1,85 @@
+import tursoClient from "@/lib/turso";
 import { defineAction } from "astro:actions";
-import { db, Sales } from "astro:db";
 
-// Action para obtener resumen de ventas
+
+// Obtener resumen de ventas
 export const getSalesSummary = defineAction({
   accept: "json",
   handler: async () => {
     try {
-      // Inicio del día de hoy
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      // Traigo todas las ventas
-      const sales = await db.select().from(Sales);
-
-      // Filtrado en memoria (convirtiendo createdAt a Date)
-      const todaySales = sales.filter((sale) => {
-        try {
-          const created = new Date(sale.createdAt);
-          return created >= today;
-        } catch {
-          return false;
-        }
+      // 1. Buscar la última apertura de turno (start_time)
+      const lastOpenShift = await tursoClient.execute({
+        sql: `
+          SELECT start_time FROM cash_closures
+          WHERE end_time IS NULL
+          ORDER BY start_time DESC
+          LIMIT 1
+        `,
       });
 
-      // Totales por método de pago
-      let totalCash = 0;
-      let totalCredit = 0;
-      let totalDebit = 0;
-      let totalTransfer = 0;
-      let totalGcash = 0;
+      const startTime = lastOpenShift.rows[0]?.start_time;
+      if (!startTime) {
+        // No hay un turno abierto, devuelve 0 para todos los totales
+        return {
+          success: true,
+          data: {
+            totalCash: 0,
+            totalCredit: 0,
+            totalDebit: 0,
+            totalTransfer: 0,
+            totalGcash: 0,
+            totalSales: 0,
+          },
+        };
+      }
 
-      for (const sale of todaySales) {
-        const method = (sale.paymentMethod || "").toString().toLowerCase();
-        const amount = Number(sale.totalAmount) || 0;
+      // 2. Obtener el resumen de ventas del turno actual
+      const salesResult = await tursoClient.execute({
+        sql: `
+          SELECT paymentMethod, SUM(totalAmount) as total
+          FROM sales
+          WHERE createdAt >= ?
+          GROUP BY paymentMethod
+        `,
+        args: [startTime],
+      });
+      // 3. Procesar los totales directamente del resultado de la consulta
+      let totals = {
+        totalCash: 0,
+        totalCredit: 0,
+        totalDebit: 0,
+        totalTransfer: 0,
+        totalGcash: 0,
+        totalSales: 0,
+      };
 
-        console.log("🔎 Procesando venta:", {
-          id: sale.id,
-          createdAt: sale.createdAt,
-          paymentMethod: method,
-          totalAmount: sale.totalAmount,
-          parsedAmount: amount,
-        });
+      for (const row of salesResult.rows) {
+        const method = (row.paymentMethod as string).toLowerCase();
+        const amount = Number(row.total) || 0;
 
         switch (method) {
           case "cash":
-            totalCash += amount;
+            totals.totalCash += amount;
             break;
           case "credit":
-            totalCredit += amount;
+            totals.totalCredit += amount;
             break;
           case "debit":
-            totalDebit += amount;
+            totals.totalDebit += amount;
             break;
           case "transfer":
-            totalTransfer += amount;
+            totals.totalTransfer += amount;
             break;
           case "gcash":
-            totalGcash += amount;
+            totals.totalGcash += amount;
             break;
         }
+        totals.totalSales += amount; // Suma al total general
       }
-
-      const totalSales =
-        totalCash + totalCredit + totalDebit + totalTransfer + totalGcash;
 
       return {
         success: true,
-        data: {
-          totalCash,
-          totalCredit,
-          totalDebit,
-          totalTransfer,
-          totalGcash,
-          totalSales,
-        },
+        data: totals,
       };
     } catch (e: any) {
       console.error("❌ Error en getSalesSummary:", e);

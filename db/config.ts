@@ -3,23 +3,33 @@ import { column, defineDb, defineTable, sql, } from 'astro:db';
 
 const User = defineTable({
   columns: {
-    // id: column.text({ primaryKey: true }),
-    id: column.text({ primaryKey: true, default: sql`lower(hex(randomblob(16)))`}),
-    name: column.text(),
+    id: column.text({ primaryKey: true }),
     email: column.text({ unique: true }),
-    password: column.text(),
-    createdAt: column.date({default: sql`CURRENT_TIMESTAMP`}),
-    role: column.text({ references: () => Role.columns.id, default: 'user'}),
-  }
+    name: column.text({ optional: true }),
+    password: column.text({ optional: true }),
+    createdAt: column.date({ optional: true, default: new Date() }),
+    roleId: column.text({ default: 'user' }),
+    emailVerified: column.date({ optional: true }),
+  },
+});
 
-})
+export const UserProfile = defineTable({
+  columns: {
+    id: column.text({ primaryKey: true }), // UUID
+    userId: column.text({ references: () => User.columns.id }), 
+    lastName: column.text({ optional: true }),
+    birthDate: column.date({ optional: true }),
+    shift: column.text({ optional: true }),
+    age: column.number({ optional: true }),
+  },
+});
 
 const Role = defineTable({
   columns: {
     id: column.text({ primaryKey: true }),
-    name: column.text(),
-  }
-})
+    name: column.text({ unique: true }),
+  },
+});
 
 const bakery_items = defineTable({
   columns: {
@@ -63,7 +73,7 @@ const Suppliers = defineTable({
   },
 });
 
-export const Sales = defineTable({
+export const Sales = defineTable({  
   columns: {
     id: column.text({ primaryKey: true }),
     totalAmount: column.number({default: 0}),
@@ -110,6 +120,7 @@ export const CashClosures = defineTable({
 export default defineDb({
   tables: { 
     User,
+    UserProfile,
     Role,
     bakery_items,
     Category,

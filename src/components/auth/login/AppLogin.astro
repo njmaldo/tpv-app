@@ -1,0 +1,146 @@
+---
+const email = Astro.cookies.get("email")?.value ?? "";
+const rememberMe = !!email;
+---
+
+<section class="login-container">
+  <form id="login-form" class="login-form">
+    <h2>Login</h2>
+
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" required />
+
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" required />
+
+    <div class="login-extras">
+      <label class="remember">
+        <input type="checkbox" name="rememberMe" /> Remember Me
+      </label>
+      <a href="/forgot" class="forgot">I forgot my password</a>
+    </div>
+
+    <p id="error-message" class="error"></p>
+
+    <button id="btn-submit" type="submit">Login</button>
+
+    <p class="alt-link">Don't you have an account? <a href="/register">Register</a></p>
+
+    <button type="button" id="btn-google" class="btn btn-google">
+      Login with Google
+    </button>
+  </form>
+</section>
+
+<script>
+  const { signIn } = await import("auth-astro/client");
+
+  const form = document.getElementById("login-form") as HTMLFormElement;
+  const errorMessage = document.getElementById("error-message")as HTMLParagraphElement;
+  const btnGoogle = document.getElementById("btn-google") as HTMLButtonElement;
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errorMessage.textContent = "";
+
+    const formData = new FormData(form);
+
+    try {
+      const resp = await signIn("credentials", {
+        email: formData.get("email") as string,
+        password: formData.get("password") as string,
+        redirect: false,
+        callbackUrl: "/redirect-by-role",
+      });
+
+      console.log("Login response:", resp);
+
+      if (resp?.error) {
+        errorMessage.textContent = "Invalid email or password.";
+      } else if (resp?.ok) {
+        window.location.href = resp.url ?? "/redirect-by-role";
+      } else {
+        errorMessage.textContent = "Unexpected login response.";
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      errorMessage.textContent = "Error while logging in.";
+    }
+  });
+
+  btnGoogle?.addEventListener("click", async () => {
+    await signIn("google", {
+      callbackUrl: "/redirect-by-role",
+    });
+  });
+</script>
+
+
+<style>
+  .login-container {
+    display: grid;
+    place-items: center;
+    min-height: 100vh;
+    background: #f8f8f8;
+  }
+
+  .login-form {
+    display: grid;
+    gap: 1rem;
+    background: white;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+  }
+
+  .login-form h2 {
+    margin: 0;
+    text-align: center;
+    color: #333;
+  }
+
+  .login-form label {
+    font-weight: 500;
+  }
+
+  .login-form input[type="email"],
+  .login-form input[type="password"] {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 0.25rem;
+    width: 100%;
+  }
+
+  .login-extras {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.875rem;
+  }
+
+  .login-extras .forgot {
+    color: #0077cc;
+    text-decoration: none;
+  }
+
+  .login-form button {
+    padding: 0.75rem;
+    background: #0077cc;
+    color: white;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+  }
+
+  .alt-link {
+    text-align: center;
+    font-size: 0.875rem;
+  }
+
+  .alt-link a {
+    color: #0077cc;
+    text-decoration: none;
+  }
+</style>

@@ -1,0 +1,278 @@
+---
+import { getEmployees } from "@/actions/tpv/employees";
+import {
+    getAvgTicket,
+    getSalesByPaymentMethod,
+    getSalesByShift,
+    getTodaySales,
+    getTopProducts,
+} from "@/lib/ventas";
+import SearchInput from "../SearchInput.astro";
+
+// Toal de ventas y tickets de hoy
+const todaySales = await getTodaySales();
+// Metodos de pago
+const salesByPayment = await getSalesByPaymentMethod();
+// Ticket promedio
+const avgTicket = await getAvgTicket();
+// Productos mas vendidos
+const topProducts = await getTopProducts();
+// Ventas por turno
+const salesByShift = await getSalesByShift();
+---
+
+<section class="dashboard">
+    <div class="dashboard-header">
+        <h2 class="dashboard-title">Sales</h2>
+        <!-- Input de búsqueda -->
+        <SearchInput id="product-search" placeholder="Search..." data-target=".table-sales"/>
+    </div>
+    <!-- Tarjetas resumen -->
+    <div class="dashboard-cards">
+        <div class="card today">
+            <h3>Today</h3>
+            <p class="amount">₱ {todaySales.total_sales}</p>
+            <small>Tickets: {todaySales.total_tickets}</small>
+        </div>
+
+        <div class="card by_method">
+            <h3>By Payment Method</h3>
+            <ul class="payment-list">
+                {
+                    salesByPayment.map(({ payment_method, total }) => (
+                        <li>
+                            {payment_method}: ₱ {Number(total).toFixed(2)}
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+
+        <div class="card average">
+            <h3>Avg. Ticket</h3>
+            <p class="amount">₱ {avgTicket.length}</p>
+            <small>Total Sales ÷ Nº Tickets</small>
+        </div>
+
+        <div class="card top_products">
+            <h3>Top Products</h3>
+            <ul class="top-products">
+                {
+                    topProducts.map((p) => (
+                        <li>
+                            {p.product}: {Number(p.qty)} units
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+    </div>
+
+    <!-- Tabla resumen -->
+    <div class="table-responsive">
+        <h3>Sales by Shift</h3>
+        <table class="table table-sales">
+            <thead>
+                <tr>
+                    <th>Shift</th>
+                    <th>Employee</th>
+                    <th>Total Sales (₱)</th>
+                    <th>Tickets</th>
+                    <th>Avg. Ticket</th>
+                    <th>Date / Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {
+                    salesByShift.map(({shift,user_name,end_time,total_sales,tickets,avg_ticket,}) => (
+                            <tr>
+                                <td>{shift}</td>
+                                <td>{user_name}</td>
+                                <td>₱ {Number(total_sales).toFixed(2)}</td>
+                                <td>{tickets}</td>
+                                <td>₱ {Number(avg_ticket).toFixed(2)}</td>
+                                <td>{end_time}</td>
+                            </tr>
+                        ),
+                    )
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<style>
+    /* .sales-dashboard {
+        padding-inline: 1.5rem;
+        padding-top: 0.75rem;
+        background: #f0f0f0;
+    } */
+
+    /* .sales-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    } */
+
+    /* .sales-cards .card {
+        background: #f5f5f5;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        padding: 1rem 1.25rem;
+    } */
+    .table-responsive h3 {
+        padding: 1rem;
+    }
+    .card {
+        border-radius: var(--radius-sm);
+    }
+    .card li {
+        text-transform: capitalize;
+    }
+    .sales-cards .card h3 {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        color: #1b263b;
+    }
+
+    .sales-cards .amount {
+        font-size: 1.4rem;
+        font-weight: bold;
+        color: #0d1b2a;
+    }
+
+    .sales-cards small {
+        color: #666;
+    }
+    .today {
+        border-left: 6px solid orange;
+        border-radius: 12px;
+    }
+    .by_method {
+        border-left: 6px solid green;
+        border-radius: 12px;
+    }
+    .average {
+        border-left: 6px solid blue;
+        border-radius: 12px;
+    }
+    .top_products {
+        border-left: 6px solid brown;
+        border-radius: 12px;
+    }
+    .payment-list,
+    .top-products {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .payment-list li,
+    .top-products li {
+        font-size: 0.9rem;
+        margin: 0.25rem 0;
+        color: #333;
+    }
+
+    .sales-table {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        padding: 1rem;
+    }
+
+    .sales-table h3 {
+        margin-bottom: 0.75rem;
+        color: #1b263b;
+    }
+
+    .sales-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .sales-table th,
+    .sales-table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+    }
+
+    .sales-table th {
+        background: #f9fafb;
+        font-weight: 600;
+        color: #0d1b2a;
+    }
+    @media (max-width: 1024px) {
+  .dashboard-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-title {
+    font-size: 1.4rem;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+}
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 1rem;
+  }
+
+  .dashboard-cards {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .dashboard-cards .card {
+    padding: 1rem;
+  }
+
+  .dashboard-title {
+    font-size: 1.25rem;
+  }
+
+  /* La tabla se desplaza horizontalmente */
+  .table-responsive {
+    padding: 0.5rem;
+    border-radius: 8px;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  /* Centrar el título de la tabla en mobile */
+  .table-responsive h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+  }
+}
+@media (max-width: 480px) {
+  .dashboard {
+    padding: 0.75rem;
+  }
+
+  .dashboard-cards .card h3 {
+    font-size: 1rem;
+  }
+
+  .dashboard-cards .card .amount {
+    font-size: 1.1rem;
+  }
+
+  .table th,
+  .table td {
+    font-size: 0.85rem;
+  }
+}
+
+
+</style>

@@ -1,167 +1,245 @@
 ---
+import { getSession } from "auth-astro/server";
+
+const nx = "/nx-b&C.png";
+
+const session = await getSession(Astro.request);
+const user = session?.user ?? null;
+const role = user?.role ?? "guest";
+const name = user?.name ?? "";
+// Definir si el usuario es administrador
+const isAdmin = role === "admin";
 ---
+
 <div class="toolbar-container">
   <div class="toolbar">
-    <a class="btn secondary" href="/" >
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M4 9h16"/></svg>
-      Home
+    <a href="/" class="toolbar-logo">
+      <img src="/nx-b&C.png" alt="NX Logo" width="55px" height="55px" />
     </a>
-    <a href="/tpv" class="btn primary" type="button" >
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-      + TPV
-    </a>
-    
-    <div class="dropdown-container">
-      <button class="btn secondary">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16h16"/><path d="M20 4 4 20"/></svg>
-        Administration
+
+    <div class="toolbar-actions">
+      <a class="btn btn-secondary" href="/">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" >
+          <path d="M4 4h16v16H4z"></path>
+          <path d="M4 9h16"></path>
+        </svg>
+        Home
+      </a>
+
+      <a href="/tpv" class="btn btn-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" >
+          <path d="M12 5v14M5 12h14"></path>
+        </svg>
+        TPV
+      </a>
+      {
+        isAdmin && (
+          <div class="dropdown-container">
+            <button class="btn btn-secondary" id="admin-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" >
+                <path d="M4 4v16h16" />
+                <path d="M20 4 4 20" />
+              </svg>
+              Administration
+            </button>
+            <div class="dropdown-menu hidden" id="admin-menu">
+              <a href="/admin/products" class="dropdown-item">Products</a>
+              <a href="/admin/ventas" class="dropdown-item">Sales</a>
+              <a href="/admin/compras" class="dropdown-item">Purchases</a>
+              <a href="/admin/empleados" class="dropdown-item">Employees</a>
+              <a href="/admin/reportes" class="dropdown-item">Reports</a>
+            </div>
+          </div>
+        )
+      }
+      
+      <button class="btn btn-dark">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" >
+          <path d="M20 20H4V4h16z"></path>
+          <path d="M4 12h16"></path>
+        </svg>
+        Export
       </button>
-      <div class="dropdown-menu">
-        <a href="/admin/products" class="dropdown-item">Products</a>
-        <a href="/admin/reportes" class="dropdown-item">Reports</a>
-        <a href="/admin/sales" class="dropdown-item">Sales</a>
-        <a href="/admin/compras" class="dropdown-item">Purchases</a>
-      </div>
     </div>
-    
-    <button class="btn dark">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H4V4h16z"/><path d="M4 12h16"/></svg>
-      Export
-    </button>
   </div>
 </div>
 
 <style>
-
-.toolbar-container {
-    display: flex;
-    justify-content: center;
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #e0e0e0;
-}
-.toolbar {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 1.5rem;
-    max-width: 1000px;
-    width: 100%;
-    padding: 1.5rem;
-}
-
-.btn {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.6rem 1.2rem; 
-  font-size: 1rem;
-  font-weight: 600;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  max-width: 250px; 
-  justify-content: center;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-decoration: none; 
-}
-
-.btn svg {
-  stroke-width: 2.5; 
-}
-
-.btn.primary {
-  color: #fff;
-  background-image: linear-gradient(135deg, #f7931e 0%, #f46214 100%);
-  box-shadow: 0 6px 15px rgba(244, 98, 20, 0.4);
-}
-
-.btn.primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(244, 98, 20, 0.5);
-  background-image: linear-gradient(135deg, #f46214 0%, #f7931e 100%);
-}
-
-.btn.primary:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(244, 98, 20, 0.3);
-}
-
-.btn.secondary {
-  color: #4a4a4a;
-  background-color: #fff;
-  border: 1px solid #dcdcdc;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.btn.secondary:hover {
-  background-color: #f0f0f0;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.btn.dark {
-  color: #fff;
-  background-color: #333;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.btn.dark:hover {
-  background-color: #1a1a1a;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-
-.dropdown-container {
-    position: relative;
-    display: inline-block;
-    justify-self: center;
-    width: 100%; 
-}
-
-.dropdown-container .btn {
-    display: flex;
-    width: 100%;
-}
-
-.dropdown-menu {
-  display: none;
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #fff;
-  min-width: 200px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  padding: 0.5rem 0; 
-  z-index: 10;
-  margin-top: 2px;
-}
-.dropdown-container:hover .dropdown-menu {
-  display: block;
-}
-/* Estilos para los elementos del menú */
-.dropdown-item {
-  color: #4a4a4a;
-  padding: 0.75rem 1.5rem;
-  text-decoration: none;
-  display: block;
-  text-align: left;
-  transition: background-color 0.2s;
-}
-
-.dropdown-item:hover {
-  background-color: #f0f0f0;
-}
-
-.dropdown-container:hover .dropdown-menu {
-  display: block;
-}
-
-@media (max-width: 600px) {
-  .toolbar {
-    grid-template-columns: repeat(2, 1fr);
+  .toolbar-container {
+    background: #f8fafc;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    /* padding: 0.6rem 1rem; */
   }
-}
+
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 1rem auto;
+    flex-wrap: wrap;
+  }
+
+  /* === LOGO === */
+  .toolbar-logo {
+    display: flex;
+    align-items: center;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: #0d1b2a;
+    text-decoration: none;
+    gap: 0.5rem;
+  }
+
+  .toolbar-logo svg {
+    width: 24px;
+    height: 24px;
+    stroke: #0d1b2a;
+  }
+
+  /* === ACCIONES === */
+  .toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* ===============================
+   BOTONES ESPECÍFICOS DEL TOOLBAR
+   =============================== */
+  .toolbar-actions .btn {
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 5px;
+    padding: 0.5rem 1.2rem;
+    min-width: 120px;
+    justify-content: center;
+    box-shadow: none;
+    text-decoration: none;
+    transition:
+      transform 0.15s ease,
+      background-color 0.2s ease;
+  }
+
+  .toolbar-actions .btn svg {
+    width: 12px;
+    height: 16px;
+  }
+
+  /* Colores: ahora planos, coherentes con base.css */
+  .toolbar-actions .btn-primary,
+  .btn-secondary,
+  .btn-dark {
+    background-color: transparent;
+    color: #1e293b;
+    border: 1px solid #ddd;
+    transform: translateY(-1px);
+  }
+
+  .toolbar-actions .btn-primary:hover,
+  .btn-secondary:hover,
+  .btn-dark:hover {
+    background-color: #f46214;
+  }
+  .toolbar-actions .btn:hover,
+  .toolbar-actions .btn:focus {
+    background: #f46214;
+    color: #fff;
+    transform: translateY(-1px);
+    outline: none;
+  }
+
+  .toolbar-actions .btn:focus-visible {
+    box-shadow: 0 0 0 3px rgba(244, 98, 20, 0.18);
+  }
+
+  /* === Dropdown === */
+  .dropdown-container {
+    position: relative;
+  }
+
+  .dropdown-container .btn {
+    z-index: 1;
+  }
+
+  .dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    min-width: 180px;
+    z-index: 10;
+  }
+
+  .dropdown-item {
+    display: block;
+    padding: 0.6rem 1rem;
+    color: #0d1b2a;
+    text-decoration: none;
+    transition: background 0.2s;
+    font-size: 0.9rem;
+  }
+
+  .dropdown-item:hover {
+    background: #f3f4f6;
+  }
+
+  /* === RESPONSIVE === */
+  @media (max-width: 768px) {
+    .toolbar {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .toolbar-actions {
+      width: 100%;
+      justify-content: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      max-width: 350px;
+      align-self: center;
+    }
+
+    .toolbar-actions .btn {
+      flex: 1 1 45%;
+      text-align: center;
+      padding: 0.6rem 1rem;
+    }
+
+    .dropdown-menu {
+      position: static;
+      box-shadow: none;
+      border: 1px solid #e5e7eb;
+    }
+  }
 </style>
+
+<script is:inline>
+  const btn = document.getElementById("admin-btn");
+  const menu = document.getElementById("admin-menu");
+
+  // Solo inicializar si el botón existe (es decir, si el usuario es admin)
+  if (btn && menu) {
+    
+    // 1. Manejar el clic del botón
+    btn.addEventListener("click", (e) => {
+      // Solo en pantallas pequeñas
+      if (window.innerWidth < 1024) {
+        e.preventDefault();
+        menu.classList.toggle("show");
+      }
+    });
+
+    // 2. Cerrar el menú si se hace clic fuera
+    document.addEventListener("click", (e) => {
+      // Usamos .contains() para verificar si el clic fue dentro del botón o del menú
+      if (!btn.contains(e.target) && !menu.contains(e.target)) {
+        menu.classList.remove("show");
+      }
+    });
+  }
+</script>
