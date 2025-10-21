@@ -7,7 +7,6 @@ import { addBakeryItem, deleteBakeryItem, getActiveProducts,
 import { createCategory, deleteCategory, listCategories } from './products/categories';
 
 import { createSupplier, deleteSupplier, listSuppliers, updateSupplier } from './proveedores';
-import { sendOrder } from './sendOrder';
 import { checkCashClosure } from './tpv/checkCashClosure';
 import { checkOpenShift } from './tpv/checkOpenShift';
 import { closeShift } from './tpv/closeShift';
@@ -61,5 +60,5 @@ export const server = {
   deletePurchase,
   listPurchases,
   // Cart
-  sendOrder
+  
 }
