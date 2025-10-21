@@ -54,37 +54,37 @@ const topSuppliers = await getTopSuppliers();
       <div class="ventas-grid">
         <div class="reporte-card">
           <h3>📅 Today</h3>
-          <p>₱ {totalHoy.toFixed(2)}</p>
+          <p> <span data-price>{totalHoy}</span></p>
           <canvas class="chart-mini" id="chart-today"></canvas>
-          <small class="trend-text">
+          <!-- <small class="trend-text">
             vs yesterday:
             <span
               id="trend-value"
               class={variation >= 0 ? "positive" : "negative"}>
               {variation >= 0 ? "+" : ""}{variation.toFixed(1)}%
             </span>
-          </small>
+          </small> -->
         </div>
 
         <div class="reporte-card">
           <h3>🗓️ This Month</h3>
-          <p>₱ {totalMes.toFixed(2)}</p>
+          <p> <span data-price>{totalMes}</span></p>
           <canvas class="chart-mini" id="chart-month"></canvas>
-          <small class="trend-text">vs last month:
-            <span class="positive">+3.8%</span>
+          <small class={variation >= 0 ? "positive" : "negative"}>
+            {variation >= 0 ? "⬆" : "⬇"} {variation.toFixed(1)}% vs last month
           </small>
         </div>
 
         <div class="reporte-card">
           <h3>💰 Inventory Value</h3>
-          <p>₱ {totalValue.toFixed(2)}</p>
+          <p> <span data-price>{totalValue}</span></p>
 
           <small class={variation >= 0 ? "positive" : "negative"}>
             {variation >= 0 ? "⬆" : "⬇"}
             {variation.toFixed(1)}% vs last month
           </small>
 
-          <p><small>📦 items in stock:</small> {totalUnits}</p>
+          <p><small>📦 items in stock:</small> {totalUnits.toLocaleString(undefined,{ minimumFractionDigits: 2 })}</p>
           <p><small>⚖️ Avg. unit price:</small> ₱ {avgPrice.toFixed(2)}</p>
         </div>
       </div>
@@ -96,9 +96,10 @@ const topSuppliers = await getTopSuppliers();
     <!-- 1️⃣ Inventory Summary -->
     <div class="reporte-card">
       <h3>📦 Inventory Summary</h3>
-      <p><strong>Total Items:</strong> {totalUnits}</p>
-      <p><strong>Total Value:</strong> ₱ {totalValue.toFixed(2)}</p>
-      <p><strong>Average Price:</strong> ₱ {avgPrice.toFixed(2)}</p>
+      <p><strong>Total Items:</strong> {totalUnits.toLocaleString(undefined,{ minimumFractionDigits: 2 })}</p>
+      <p><strong>Total Value:</strong> <span data-price> ₱ {totalValue}</span></p>
+      <!-- <p><strong>Total Value:</strong> ₱ {totalValue.toFixed(2)}</p> -->
+      <p><strong>Average Price:</strong> <span data-price>{avgPrice}</span></p>
     </div>
 
     <!-- 2️⃣ Stock Chart -->
@@ -131,9 +132,9 @@ const topSuppliers = await getTopSuppliers();
     <!-- 1️⃣ Purchases Summary -->
     <div class="reporte-card">
       <h3>🧾 Purchases Summary</h3>
-      <p><strong>Total Purchases:</strong> {purchasesCount}</p>
-      <p><strong>This Month:</strong> ₱ {totalPurchases.toFixed(2)}</p>
-      <p><strong>Average Purchase:</strong> ₱ {avgPurchase.toFixed(2)}</p>
+      <p><strong>Total Purchases:</strong>  {purchasesCount.toLocaleString(undefined,{ minimumFractionDigits: 2 })}</p>
+      <p><strong>This Month:</strong> <span data-price>{totalPurchases}</span></p>
+      <p><strong>Average Purchase:</strong> <span data-price>{avgPurchase}</span></p>
     </div>
 
     <!-- 2️⃣ Monthly Purchases Chart -->
@@ -147,7 +148,7 @@ const topSuppliers = await getTopSuppliers();
       <h3>🏆 Top Suppliers</h3>
       <ul>
         {topSuppliers.map(({ name, totalComprado }) => (
-          <li>{name}: ₱ {totalComprado.toFixed(2)}</li>
+          <li>{name}: <span data-price>{totalComprado}</span></li>
         ))}
       </ul>
     </div>
@@ -164,18 +165,18 @@ const topSuppliers = await getTopSuppliers();
         <!-- 1️⃣ Resumen mensual -->
         <div class="reporte-card">
           <h3>📅 Monthly Summary</h3>
-          <p><strong>Sales:</strong> ₱ {monthlySales.toFixed(2)}</p>
-          <p><strong>Purchases:</strong> ₱ {monthlyPurchases.toFixed(2)}</p>
+          <p><strong>Sales:</strong> <span data-price>{monthlySales}</span></p>
+          <p><strong>Purchases:</strong> <span data-price>{monthlyPurchases}</span></p>
           <hr>
-          <p><strong>Net Balance:</strong> ₱ {(monthlySales - monthlyPurchases).toFixed(2)}</p>
+          <p><strong>Net Balance:</strong> <span data-price> {(monthlySales - monthlyPurchases)}</span></p>
         </div>
 
         <!-- 2️⃣ Resumen general -->
         <div class="reporte-card">
           <h3>📈 Cumulative Totals</h3>
-          <p><strong>Last 3 Months:</strong> ₱ {quarterTotal.toFixed(2)}</p>
-          <p><strong>Last 6 Months:</strong> ₱ {semesterTotal.toFixed(2)}</p>
-          <p><strong>This Year:</strong> ₱ {annualTotal.toFixed(2)}</p>
+          <p><strong>Last 3 Months:</strong> <span data-price>{quarterTotal}</span></p>
+          <p><strong>Last 6 Months:</strong> <span data-price>{semesterTotal}</span></p>
+          <p><strong>This Year:</strong> <span data-price>{annualTotal}</span></p>
         </div>
 
         <!-- 3️⃣ Gráfico opcional -->
@@ -714,7 +715,7 @@ const purchasesChartTotals = purchasesChartData.map(d => d.total);
 new Chart(purchasesChartCtx, {
   type: "bar",
   data: {
-    labels: purchasesChartLabels, // ✅ nombre correcto
+    labels: purchasesChartLabels, 
     datasets: [{
       label: "Monthly Purchases",
       data: purchasesChartTotals,

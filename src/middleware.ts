@@ -26,9 +26,17 @@ export const onRequest = defineMiddleware(async ({ url, locals, redirect, reques
   const path = url.pathname;
 
   // --- 1. Rutas públicas ---
-  if (PUBLIC_ROUTES.includes(path)) {
+    if (
+    PUBLIC_ROUTES.includes(path) ||
+    path === "/api/send-order" ||
+    path.startsWith("/actions/sendOrder") ||
+    path.startsWith("/api/public") // por si querés más adelante
+  ) {
     return next();
   }
+  // if (PUBLIC_ROUTES.includes(path)) {
+  //   return next();
+  // }
 
   // --- 2. Rutas TPV (solo usuarios logueados) ---
   if (TPV_ROUTES.some((route) => path.startsWith(route))) {

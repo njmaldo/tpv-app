@@ -98,7 +98,7 @@ if (isAdmin) {
     )}
 
     {isAdmin && employees.length > 0 && (
-      <optgroup label="Empleados">
+      <optgroup label="Employees">
         {employees.map((emp) => (
           <option value={emp.id} selected={emp.id === serverUser?.id}>
             {emp.name}
@@ -111,6 +111,7 @@ if (isAdmin) {
       <!-- No hay turno abierto -->
       <select id="shiftSelect" >
         <option value="morning">Morning</option>
+        <option value="afternoon">Afternoon</option>
         <option value="evening">Evening</option>
       </select>
     </div>
@@ -404,7 +405,7 @@ if (isAdmin) {
 
     // Toma el turno del <select> dentro del formulario
     const shiftSelect = document.getElementById("shiftSelect") as HTMLSelectElement;
-    const shift = shiftSelect?.value as "morning" | "evening"; // tipado literal
+    const shift = shiftSelect?.value as "morning" |"afternoon" | "evening"; // tipado literal
 
     const result = await actions.openShift({
       shift,
@@ -640,7 +641,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   
   .btn-primary {
-    margin-top: 0.5rem;
+    flex-grow: 1;
   }
   
 </style>

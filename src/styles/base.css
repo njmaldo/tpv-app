@@ -6,6 +6,7 @@
       ├── base.css          ← global/reset/botones/tablas/formularios/utilidades
       ├── components.css    ← dropdown, modal, toast, card, badge, status, etc.
       ├── dashboard.css     ← estilos comunes de admin (cards, headers) */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
 
 :root {
   /* Colores base */
@@ -24,7 +25,7 @@
   --color-text: #0D1B2A;
 
   /* Tipografía */
-  --font-family-base: 'Poppins Rounded', 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-family-base: 'Nunito', 'Segoe UI', Roboto, Arial, sans-serif;
   --font-size-base: 16px;
   --font-size-sm: 14px;
   --font-size-lg: 18px;
@@ -261,6 +262,32 @@ a:hover {
   background-color: rgba(0, 0, 0, 0.05);
   color: #000;
 }
+
+.btn-icon {
+  background-color: #fff;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  font-size: 1.25rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  line-height: 1;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s;
+}
+
+.btn-icon:hover {
+  background-color: #f9fafb;
+  border-color: #d1d5db;
+  color: #111827;
+}
+
+/* Estado activo (cuando el menú está abierto) */
+.btn-icon.active {
+  background-color: #f3f4f6;
+  border-color: #cbd5e1;
+  color: #111827;
+}
+
 /* ===========================
     FORMULARIOS
 =========================== */
@@ -345,83 +372,19 @@ tbody::after {
   /* hover general */
 }
 
-/* ===========================
-    Dropdown
-=========================== */
-
-/* === GLOBAL DROPDOWN MENU (para btn ⋮) === */
-.dropdown {
-  position: relative;
-  display: inline-block;
-}
-/* === Contenedor principal === */
-.dropdown-container {
-  position: relative;
-  display: inline-block;
-  justify-self: center;
-  width: 100%; 
-}
-
-/* === Botón principal (usa tu clase .btn existente) === */
-.dropdown-container .btn {
+/* Footer */
+.footer {
+  border-top: 1px solid rgba(0, 0, 0, .1);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
+  padding: 1.5rem 0;
+  color: #666;
+  font-size: 0.95rem;
+  line-height: 1.5;
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 0.5rem;
-}
-
-/* === Menú desplegable === */
-.dropdown-menu {
-  position: absolute;
-  top: 100%;
-  right: 0; /* alineado al botón */
-  margin-top: 6px;
-  z-index: 100;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 0.25rem 0;
-  min-width: 180px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1),
-              0 1px 3px rgba(0, 0, 0, 0.05);
-  display: none;
-}
-.dropdown-container::before {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 0;
+  flex-direction: column;
   width: 100%;
-  height: 10px; /* ajustá el tamaño del área buffer */
-  background: transparent;
-}
-/* === Mostrar cuando está activa (controlado por JS) === */
-.dropdown-menu.show {
-  display: block;
-}
-
-/* === Items del menú === */
-.dropdown-item {
-  display: block;
-  width: 100%;
-  padding: 0.6rem 1rem;
-  background: none;
-  border: none;
-  text-align: left;
-  color: #374151;
-  font-size: 0.9rem;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-}
-
-.dropdown-item:hover {
-  background-color: #f3f4f6;
-  color: #111827;
-}
-
-/* Variante destructiva */
-.dropdown-item.danger {
-  color: #c62828;
 }
 
 /* === Desktop: permite hover automático === */
@@ -429,10 +392,7 @@ tbody::after {
   .dropdown-container:hover .dropdown-menu {
     display: block;
   }
-}
 
-/* === Responsive ajustes === */
-@media (max-width: 768px) {
   .dropdown-container {
     width: auto;
   }
@@ -448,82 +408,6 @@ tbody::after {
     transform: none;
     min-width: 160px;
   }
-}
-/* Fin nuevo dropdown */
-/* === Items internos (links o botones) === */
-/* .dropdown-menu a,
-.dropdown-menu button {
-  display: block;
-  width: 100%;
-  padding: 0.6rem 1rem;
-  background: none;
-  border: none;
-  text-align: left;
-  color: #374151;
-  font-size: 0.9rem;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-}
-
-.dropdown-menu a:hover,
-.dropdown-menu button:hover {
-  background-color: #f3f4f6;
-  color: #111827;
-}
-.dropdown-menu.show {
-  display: block;
-} */
-/* Variante de acción destructiva */
-/* .dropdown-item.danger {
-  color: #c62828;
-}
-.dropdown-menu.hidden {
-  display: none;
-}
-
-.dropdown-item {
-  display: block;
-  width: 100%;
-  padding: 0.5rem 0.9rem;
-  background: none;
-  border: none;
-  text-align: left;
-  cursor: pointer;
-  font-size: 0.95rem;
-}
-
-.dropdown-item:hover {
-  background: #f7f7f7;
-}
-
-.dropdown-item.danger {
-  color: #c62828;
-} */
-
-.btn-icon {
-  background-color: #fff;          /* fondo blanco permanente */
-  border: 1px solid #e5e7eb;       /* borde gris claro visible */
-  color: #374151;
-  font-size: 1.25rem;
-  padding: 0.35rem 0.5rem;
-  border-radius: 4px;
-  cursor: pointer;
-  line-height: 1;
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s;
-}
-
-.btn-icon:hover {
-  background-color: #f9fafb;       
-  border-color: #d1d5db;           
-  color: #111827;                 
-}
-
-/* Estado activo (cuando el menú está abierto) */
-.btn-icon.active {
-  background-color: #f3f4f6;
-  border-color: #cbd5e1;
-  color: #111827;
 }
 
 

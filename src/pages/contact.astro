@@ -1,0 +1,30 @@
+---
+import MainLayout from "@/layouts/MainLayout.astro";
+import ContactForm from "@/components/forms/ContactForm.astro";
+import HeroContact from "@/components/hero/HeroContact.astro";
+import ContactInfo from "@/components/info/ContactInfo.astro";
+import CtaContact from "@/components/cta/CtaContact.astro";
+
+---
+
+<MainLayout>
+    <main class="page-layout">
+        <HeroContact />
+        <ContactInfo />
+        <ContactForm />
+		<CtaContact />
+    </main>
+</MainLayout>
+
+<style>
+    .page-layout {
+		display: flex;
+		flex-direction: column;
+		gap: clamp(3rem, 5vw, 7rem);
+		width: 100%;
+		max-width: 100%;
+		padding-inline: 0;
+		margin-inline: 0;
+		/* padding-top: clamp(3rem, 5vh, 7rem); */
+	}
+</style>

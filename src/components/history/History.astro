@@ -1,0 +1,121 @@
+---
+import { Image } from "astro:assets";
+import bakeryHistory from "./img/bakery-history.png";
+---
+
+<section id="history" class="history">
+  <div class="history-container">
+    <div class="history-text">
+      <h2>The Passion Behind the Loaf</h2>
+      <p>
+        We are a family bakery with a mission to revive the true essence of
+        bread and coffee. We recover the authentic flavor of French, Spanish,
+        Italian, and Latin American traditions. Our secret: natural sourdough,
+        local grains, and the patience of time. The result is the freshness we
+        deliver to you every day.
+      </p>
+    </div>
+    <div class="history-img-container">
+      <Image src={bakeryHistory} alt="Panadería artesanal" />
+    </div>
+  </div>
+</section>
+
+<style>
+  .history {
+    padding-inline: 0.5rem;
+  }
+  .history-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+  }
+
+  .history .history-text {
+    font-size: 1rem;
+    color: #5a4634;
+  }
+  .history-text h2 {
+    font-size: clamp(2.2rem, 4vw, 3.5rem);
+    background: linear-gradient(90deg, #1f2a44 0%, #272a30 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    max-width: 500px;
+    padding: 1rem;
+  }
+  .history-text p {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    line-height: 1.6;
+    max-width: 600px;
+    padding: 1rem;
+  }
+  .history-img-container {
+    aspect-ratio: 4 /3;
+    width: 100%;
+    overflow: hidden;
+  }
+  .history img {
+    border-radius: 5px;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  /* 📱 Tablets (≤ 1024px) */
+  @media (max-width: 1024px) {
+    .history-container {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+      text-align: center;
+    }
+
+    .history-text h2 {
+      font-size: clamp(1.8rem, 5vw, 2.5rem);
+      margin: 0 auto;
+      padding-inline: 0;
+    }
+
+    .history-text p {
+      max-width: 90%;
+      margin: 0 auto;
+      padding-inline: 0;
+      font-size: 1.05rem;
+    }
+
+    .history-img-container {
+      max-width: 600px;
+      margin: 0 auto;
+      aspect-ratio: 4 / 3;
+      border-radius: 6px;
+    }
+  }
+
+  /* 📱 Móviles (≤ 640px) */
+  @media (max-width: 640px) {
+    .history {
+      padding-inline: 1rem;
+    }
+
+    .history-text h2 {
+      font-size: clamp(1.6rem, 6vw, 2rem);
+      padding: 0.5rem 0;
+    }
+
+    .history-text p {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      text-align: left;
+    }
+
+    .history-img-container {
+      aspect-ratio: 1 / 1;
+      width: 100%;
+      border-radius: 5px;
+    }
+
+    .history img {
+      border-radius: 5px;
+    }
+  }
+
+</style>

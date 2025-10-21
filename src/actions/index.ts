@@ -2,13 +2,12 @@ import {login,logout, register } from './auth';
 import { createPurchase, deletePurchase, 
          listPurchases, updatePurchase } from './compras';
 import {listEmployees,deleteEmployee, getEmployeeActive, toggleEmployeeActive, updateEmployee, createEmployee } from './employees';
-import {
-  addBakeryItem, deleteBakeryItem, getActiveProducts,
-  getProductsByCategory, toggleActive, updateBakeryItem
-} from './products';
+import { addBakeryItem, deleteBakeryItem, getActiveProducts,
+         getProductsByCategory, toggleActive, updateBakeryItem} from './products';
 import { createCategory, deleteCategory, listCategories } from './products/categories';
 
 import { createSupplier, deleteSupplier, listSuppliers, updateSupplier } from './proveedores';
+import { sendOrder } from './sendOrder';
 import { checkCashClosure } from './tpv/checkCashClosure';
 import { checkOpenShift } from './tpv/checkOpenShift';
 import { closeShift } from './tpv/closeShift';
@@ -61,5 +60,6 @@ export const server = {
   updatePurchase,
   deletePurchase,
   listPurchases,
-  
+  // Cart
+  sendOrder
 }

@@ -1,6 +1,8 @@
 ---
 import Navbar from '@components/navbar/Navbar.astro';
 import '../styles/global.css';
+import '../styles/base.css';
+import '../styles/component.css';
 
 interface Props {
   title?: string;
@@ -25,5 +27,21 @@ const { title = ' bakeryApp' } = Astro.props;
     <footer class="footer">
       <p>&copy; {new Date().getFullYear()} NX Coffee & Bread. All rights reserved.</p>
     </footer>
+      <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const formatter = new Intl.NumberFormat("en-PH", {
+          style: "currency",
+          currency: "PHP",
+          minimumFractionDigits: 2,
+        });
+
+        document.querySelectorAll("[data-price]").forEach(el => {
+          const value = parseFloat(el.textContent.replace(/[^\d.-]/g, ""));
+          if (!isNaN(value)) {
+            el.textContent = formatter.format(value).replace("₱", "₱ ");
+          }
+        });
+      });
+  </script>
   </body>
 </html>

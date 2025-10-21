@@ -1,0 +1,125 @@
+---
+import { Image } from "astro:assets";
+import contactHero from "./img/hero-contact-bakery.png";
+---
+
+<section class="contact-hero">
+    <div class="hero-content">
+        <h2>We’d Love to Hear From You</h2>
+        <p>
+            Have a question, a catering request, or just want to say hi? Send us
+            a message we’d love to chat over coffee.
+        </p>
+        <a href="#contact-form" class="btn ">Send a Message</a>
+    </div>
+    <div class="hero-image-cotainer">
+        <Image src={contactHero} alt="Contact Us" class="hero-image" />
+    </div>
+</section>
+
+<style>
+    .contact-hero {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        min-height: 80vh;
+    }
+
+    .hero-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 1rem;
+    }
+
+    .hero-content h2 {
+        font-size: clamp(2.2rem, 4vw, 3.5rem);
+        font-weight: 700;
+        background: linear-gradient(90deg, #1f2a44 0%, #272a30 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        max-width: 500px;
+        padding: 1rem;
+    }
+
+    .hero-content p {
+        font-size: clamp(1rem, 2vw, 1.25rem);
+        margin-bottom: 2rem;
+        color: #475569;
+        line-height: 1.6;
+        max-width: 600px;
+        padding: 1rem;
+    }
+    .hero-image-cotainer {
+        aspect-ratio: 4 / 3;
+        width: 100%;
+        overflow: hidden;
+        padding: 0.75rem;
+    }
+    .hero-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 5px;
+    }
+    .btn {
+        display: inline-block;
+    }
+    .btn:hover {
+        background: #ff8513;
+    }
+    /* --- Tablet --- */
+  @media (max-width: 900px) {
+    .contact-hero {
+      grid-template-columns: 1fr;
+      min-height: auto;
+      text-align: center;
+    }
+
+    .hero-content {
+      align-items: center;
+      padding: 2rem;
+    }
+
+    .hero-content h2 {
+      max-width: 90%;
+    }
+
+    .hero-content p {
+      max-width: 90%;
+    }
+
+    .hero-image-cotainer {
+      padding: 1rem 2rem;
+      aspect-ratio: 16 / 9;
+    }
+  }
+
+  /* --- Mobile --- */
+  @media (max-width: 600px) {
+    .hero-content {
+      padding: 1.5rem 1rem;
+    }
+
+    .hero-content h2 {
+      font-size: 1.8rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .hero-content p {
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
+
+    .hero-image-cotainer {
+      padding: 0.5rem 1rem 1rem;
+    }
+
+    .btn {
+       background: #ff8513;
+    }
+  }
+
+</style>

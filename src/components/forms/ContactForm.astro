@@ -1,0 +1,284 @@
+---
+
+---
+
+<section class="contact-map-form">
+    <div class="map-container">
+        <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18..."
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+
+    <div class="form-container">
+        <h2>Send Us a Message</h2>
+        <form id="contact-form" action="https://formspree.io/f/xkgbygyb" method="POST" novalidate>
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" placeholder="Your name" required autocomplete="off" />
+                <span class="error-message"></span>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" name="email" id="email" placeholder="your@email.com" required autocomplete="off" />
+                <span class="error-message"></span>
+            </div>
+            <div class="form-group full-width">
+                <label for="message">Message</label>
+                <textarea id="message" name="message" rows="5" placeholder="Write your message..." required autocomplete="off"> </textarea>
+                <span class="error-message"></span>
+            </div>
+            <button type="submit" class="btn">Send Message</button>
+        </form>
+    </div>
+</section>
+
+<style>
+
+    .contact-map-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        padding-inline: 1rem;
+        align-items: stretch;
+  }
+    .form-container {
+        min-width: 400px;
+    }
+    .form-container h2 {
+        padding-bottom: 1rem;
+    }
+    .map-container {
+        aspect-ratio: 16 / 9;
+        width: 100%;
+    }
+    .map-container iframe {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border: none;
+        border-radius: 5px;
+    }
+    .btn {
+        margin-top: 0.75rem;
+    }
+    .btn:hover {
+        background: #ff8513;
+    }
+    /* --- Mensajes de error --- */
+  .error-message {
+    font-size: 0.875rem;
+    color: #dc2626;
+    margin-top: 0.25rem;
+    visibility: hidden;
+  }
+
+  .form-group.invalid input,
+  .form-group.invalid textarea {
+    border-color: #dc2626;
+  }
+
+  .form-group.invalid .error-message {
+    visibility: visible;
+  }
+
+  /* Tablet */
+  @media (max-width: 900px) {
+    .contact-map-form {
+      grid-template-columns: 1fr;
+    }
+
+    .map-container {
+      aspect-ratio: 16 / 9;
+      height: auto;
+    }
+
+    form {
+      grid-template-columns: 1fr;
+    }
+
+    .btn {
+      grid-column: 1;
+      background: #ff8513;
+    }
+  }
+
+  /* Mobile */
+  @media (max-width: 600px) {
+    .form-container {
+      min-width: auto;
+      padding-bottom: 2rem;
+    }
+
+    .form-container h2 {
+      font-size: 1.4rem;
+      text-align: center;
+    }
+
+    input,
+    textarea {
+      font-size: 0.95rem;
+      padding: 0.65rem;
+    }
+
+    .btn {
+      font-size: 1rem;
+      background: #ff8513;
+    }
+  }
+
+</style>
+
+<script is:inline>
+  const form = document.getElementById("contact-form");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    let isValid = true;
+
+    // Resetear errores
+    form.querySelectorAll(".form-group").forEach((group) => {
+      group.classList.remove("invalid");
+      const msg = group.querySelector(".error-message");
+      if (msg) msg.textContent = "";
+    });
+
+    // Validaciones
+    const name = form.querySelector("#name");
+    const email = form.querySelector("#email");
+    const message = form.querySelector("#message");
+
+    if (name.value.trim().length < 2) {
+      showError(name, "Please enter your name.");
+      isValid = false;
+    }
+
+    const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+    if (!emailPattern.test(email.value.trim())) {
+      showError(email, "Please enter a valid email address.");
+      isValid = false;
+    }
+
+    if (message.value.trim().length < 10) {
+      showError(message, "Your message should be at least 10 characters.");
+      isValid = false;
+    }
+
+    if (!isValid) return;
+
+    // Enviar a Formspree
+    try {
+      const response = await fetch(form.action, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          name: name.value.trim(),
+          email: email.value.trim(),
+          message: message.value.trim(),
+        }),
+      });
+
+      if (response.ok) {
+        alert("✅ Message sent successfully!");
+        form.reset();
+      } else {
+        const data = await response.json();
+        alert(data.message || "❌ Error sending your message.");
+      }
+    } catch (err) {
+      alert("Network error. Please try again.");
+    }
+  });
+
+  function showError(input, message) {
+    const group = input.closest(".form-group");
+    group.classList.add("invalid");
+
+    let errorMsg = group.querySelector(".error-message");
+    if (!errorMsg) {
+      errorMsg = document.createElement("span");
+      errorMsg.className = "error-message";
+      group.appendChild(errorMsg);
+    }
+    errorMsg.textContent = message;
+  }
+</script>
+
+<!-- <script is:inline>
+  const form = document.getElementById("contact-form");
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    let isValid = true;
+
+    // Resetear errores
+    form.querySelectorAll(".form-group").forEach((group) => {
+      group.classList.remove("invalid");
+      group.querySelector(".error-message").textContent = "";
+    });
+
+    // Validar nombre
+    const name = form.querySelector("#name");
+    if (name.value.trim().length < 2) {
+      showError(name, "Please enter your name.");
+      isValid = false;
+    }
+
+    // Validar email
+    const email = form.querySelector("#email");
+    const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+    if (!emailPattern.test(email.value.trim())) {
+      showError(email, "Please enter a valid email address.");
+      isValid = false;
+    }
+
+    // Validar mensaje
+    const message = form.querySelector("#message");
+    if (message.value.trim().length < 10) {
+      showError(message, "Your message should be at least 10 characters.");
+      isValid = false;
+    }
+
+    if (isValid) {
+      alert("✅ Message sent successfully!");
+      form.reset();
+    }
+  });
+
+  function showError(input, message) {
+    const group = input.closest(".form-group");
+    group.classList.add("invalid");
+    group.querySelector(".error-message").textContent = message;
+  }
+  form.addEventListener('submit', async function (e) {
+  e.preventDefault();
+
+  // ⚠️ No dupliques la validación: esta parte debe ejecutarse después de que todo esté validado
+  const formData = {
+    name: form.querySelector("#name").value.trim(),
+    email: form.querySelector("#email").value.trim(),
+    message: form.querySelector("#message").value.trim(),
+  };
+
+  try {
+    const response = await fetch(form.action, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(formData),
+    });
+
+    if (response.ok) {
+      alert("✅ Message sent successfully!");
+      form.reset();
+    } else {
+      const data = await response.json();
+      alert(data.message || "❌ Error sending your message. Please try again.");
+    }
+  } catch (err) {
+    alert("Network error. Please try again.");
+  }
+});
+
+</script> -->

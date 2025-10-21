@@ -1,89 +1,136 @@
 ---
-import type { BakeryItem } from '@/interfaces/BakeryItem';
-import tursoClient from '@/lib/turso';
+import type { BakeryItem } from "@/interfaces/BakeryItem";
+import tursoClient from "@/lib/turso";
+import Cart from "@/components/cart/Cart.astro";
 
-let bakeryItems:BakeryItem[] = [];
+let bakeryItems: BakeryItem[] = [];
 let error: string | null = null;
 
 try {
+  const rs = await tursoClient.execute("SELECT * FROM bakery_items");
 
-	const rs = await tursoClient.execute("SELECT * FROM bakery_items");
-
-	
-  bakeryItems = rs.rows.map(({ id, name, description, price, imageUrl, createdAt, categoryId,stock}): BakeryItem => ({
+  bakeryItems = rs.rows.map(
+    ({id,name,description,price,imageUrl,createdAt,categoryId,stock,}): BakeryItem => ({
       id: String(id),
       name: String(name),
       description: description ? String(description) : null,
       price: Number(price),
       imageUrl: imageUrl ? String(imageUrl) : null,
       createdAt: String(createdAt),
-      categoryId: String(categoryId), 
-      stock: Number(stock)
-    })
+      categoryId: String(categoryId),
+      stock: Number(stock),
+    }),
   );
 } catch (e) {
-	console.error("Error al obtener productos de Turso:", e);
-	error = "Error al cargar los productos de la panadería.";
+  console.error("Error al obtener productos de Turso:", e);
+  error = "Error al cargar los productos de la panadería.";
 }
 ---
 
 <section class="product-section">
-  <h2 class="section-title">Our Products</h2>
+  <div class="header-content">
+     <h2>Freshly Baked Bread, Every Day</h2>
+     <p>Handcrafted pastries and coffee, ready to order online</p>
+  </div>
 
-  {error && (
-    <div class="error-message">
-      <p>{error}</p>
-    </div>
-  )}
+  {
+    error && (
+      <div class="error-message">
+        <p>{error}</p>
+      </div>
+    )
+  }
 
-  {bakeryItems.length === 0 && !error ? (
-    <div class="no-products-message">
-      There are no products available. Add some!
-    </div>
-  ) : (
-    <div class="product-grid">
-      {bakeryItems.map(({imageUrl,name,description,price}) => (
-        <div class="product-card">
-          <img
-            src={
-              imageUrl ||
-              "https://placehold.co/300x200/FFDDC1/8B4513?text=No+Image"
-            }
-            alt={name}
-            class="product-image"
-          />
-          <div class="product-info">
-            <h3 class="product-name">{name}</h3>
-            <p class="product-description">{description}</p>
-            <div class="product-footer">
-              <span class="product-price">
-                ${price.toFixed(2)}
-              </span>
-              <button class="add-to-cart-button">
-                Add to cart
-              </button>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  )}
+  {
+    bakeryItems.length === 0 && !error ? (
+      <div class="no-products-message">
+        There are no products available. Add some!
+      </div>
+    ) : (
+      <div id="product-grid" class="product-grid">
+        {bakeryItems.map(
+          ({ imageUrl, name, description, price, createdAt }) => {
+            // Calcula si es nuevo (ej: creado hace menos de 7 días)
+            const isNew =
+              createdAt &&
+              Date.now() - new Date(createdAt).getTime() < 7 * 24 * 60 * 60 * 1000;
+
+            return (
+              <div class="product-card">
+                {isNew && <span class="badge">New</span>}
+                <div class="product-image-container">
+                <img
+                  src={imageUrl || "https://placehold.co/300x200/FFDDC1/8B4513?text=No+Image" }
+                  alt={name}
+                  class="product-image"
+                />
+                </div>
+
+                <div class="product-info">
+                  <h3 class="product-name">{name}</h3>
+                  <p class="product-description">{description}</p>
+                  <div class="product-footer">
+                    <div class="price-wrapper">
+                      <span class="old-price" data-price>
+                        ${price * 1.2}
+                      </span>
+                      <span class="product-price" data-price>
+                        ${price}
+                      </span>
+                    </div>
+                    <button  class="add-to-cart-button"  data-name={name} data-price={price} >
+                        Add to cart
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          },
+        )}
+      </div>
+    )
+  }
+  <Cart />
 </section>
 
 <style>
+  /* === SECCIÓN DE PRODUCTOS === */
 .product-section {
-  padding: 2rem 1rem;
-  background-color: #faf9f7;
+  padding-inline: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.section-title {
+/* HEADER DE SECCIÓN */
+.header-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
+  padding: 2.5rem 1rem 2rem;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 2rem;
+  background: linear-gradient(135deg, #faf9f7 0%, #fff 100%);
+}
+
+.header-content h2 {
   font-size: 2rem;
   font-weight: 700;
-  color: #0D1B2A;
-  margin-bottom: 2rem;
+  color: #0d1b2a;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
 }
 
+.header-content p {
+  font-size: 1.1rem;
+  color: #6b7280;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* MENSAJES DE ERROR O VACÍO */
 .error-message {
   background-color: #ffe6e6;
   border: 1px solid #ff9999;
@@ -97,83 +144,200 @@ try {
 
 .no-products-message {
   text-align: center;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   color: #555;
   padding: 2rem;
 }
 
+/* === GRID DE PRODUCTOS === */
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1.5rem; /* un poco más de aire visual */
 }
 
+/* === CARD DE PRODUCTO === */
 .product-card {
+  position: relative;
   background: #fff;
-  border-radius: 10px;
-  /* overflow: hidden; */
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border-radius: 5px;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .product-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
 }
 
+/* Imagen más grande, visualmente más atractiva */
+.product-image-container {
+  aspect-ratio: 1 / 1; 
+  width: 100%;
+  overflow: hidden;
+}
 .product-image {
   width: 100%;
-  height: 180px;
-  object-fit: cover;
+  height: 100%;
+  object-fit: contain;
+  border-bottom: 1px solid #eee;
 }
 
-.product-info {
-  padding: 1rem;
+/* Info general */
+/* .product-info {
+  padding: 5px 5px;
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-}
-
-.product-name {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem;
-  color: #1B263B;
-}
-
-.product-description {
-  font-size: 0.95rem;
-  color: #555;
+} */
+.product-info {
+  padding: 0.75rem;
   flex-grow: 1;
-  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+/* Nombre */
+.product-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1b263b;
+  margin-bottom: 0.35rem;
+  /* line-height: 1.3; */
+  letter-spacing: -0.2px;
 }
 
+/* Línea separadora sutil entre nombre y descripción */
+.product-info::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: #eee;
+  margin: 0.5rem 0;
+}
+
+/* Descripción (oculta en mobile, visible en hover en desktop) */
+.product-description {
+  font-size: 0.9rem;
+  color: #555;
+  line-height: 1.4;
+  flex-grow: 1;
+}
+
+@media (max-width: 600px) {
+  .product-description {
+    display: none;
+  }
+}
+
+/* Extra info al pasar el mouse */
+.product-card .extra-info {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.product-card:hover .extra-info {
+  opacity: 1;
+  max-height: 100px;
+}
+
+/* Footer con precio y botón */
 .product-footer {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid #eee;
 }
 
+/* Precio */
+.price-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+}
 .product-price {
   font-size: 1.1rem;
   font-weight: bold;
-  color: #22C55E;
+  color: #333;
 }
 
+.price-row {
+  display: flex;
+  gap: 0.4rem;
+  align-items: baseline;
+}
+
+.old-price {
+  text-decoration: line-through;
+  color: #9ca3af;
+  font-size: 0.75rem;
+}
+
+/* Botón */
 .add-to-cart-button {
-  background-color: #0D1B2A;
+  background-color: #0d1b2a;
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
+  padding: 5px 12px;
+  border-radius: 5px;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: background 0.2s ease;
+  font-weight: 500;
+  transition: background 0.3s ease, transform 0.2s ease;
 }
 
 .add-to-cart-button:hover {
-  background-color: #22C55E;
+  background: #f59e0b;
+  transform: scale(1.03);
 }
+
+/* Etiquetas (nuevo, oferta, etc.) */
+.badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: #22c55e;
+  color: white;
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.badge.sale {
+  background: #e11d48;
+}
+
+.badge.out {
+  background: #6b7280;
+}
+
 </style>
+
+<script is:inline>
+  document.addEventListener("DOMContentLoaded", () => {
+    const grid = document.getElementById("product-grid");
+    if (!grid) return;
+
+    window.addEventListener("filter-products", (e) => {
+      const query = e.detail.query.toLowerCase();
+      const cards = grid.querySelectorAll(".product-card");
+
+      cards.forEach((card) => {
+        const name = card.querySelector(".product-name")?.textContent.toLowerCase() || "";
+        const desc = card.querySelector(".product-description")?.textContent.toLowerCase() || "";
+        const match = name.includes(query) || desc.includes(query);
+        card.style.display = match ? "flex" : "none";
+      });
+    });
+  });
+</script>

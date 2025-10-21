@@ -49,34 +49,84 @@
 .badge.danger {
   background-color: var(--color-danger);
 }
+/* ===========================
+   Dropdown Menu
+=========================== */
 
-/* Dropdown */
-.dropdown {
+/* === GLOBAL DROPDOWN MENU (para btn ⋮) === */
+/* === Contenedor principal === */
+.dropdown, 
+.dropdown-container {
   position: relative;
   display: inline-block;
+  justify-self: center;
+  width: 100%; 
 }
+
+/* === Botón principal (usa tu clase .btn existente) === */
+.dropdown-container .btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+/* === Menú desplegable === */
 .dropdown-menu {
   position: absolute;
   top: 100%;
   right: 0;
-  background: white;
+  margin-top: 5px;
+  z-index: 100;
+  background: #fff;
   border: 1px solid #e5e7eb;
-  border-radius: var(--radius);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  min-width: 150px;
-  z-index: 10;
+  border-radius: 5px;
+  padding: 0.25rem 0;
+  min-width: 140px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1),
+              0 1px 3px rgba(0, 0, 0, 0.05);
+  display: none;
 }
-.dropdown-item {
+.dropdown-container::before {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  height: 10px;
+  background: transparent;
+}
+/* === Mostrar cuando está activa (controlado por JS) === */
+.dropdown-menu.show {
   display: block;
-  padding: 0.5rem 1rem;
-  color: #111;
-  text-decoration: none;
-}
-.dropdown-item:hover {
-  background: #f3f4f6;
 }
 
-/* Modal */
+/* === Items del menú === */
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.6rem 1rem;
+  background: none;
+  border: none;
+  text-align: left;
+  color: #374151;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.dropdown-item:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+/* Variante destructiva */
+.dropdown-item.danger {
+  color: #c62828;
+}
+
+/* ===========================
+   Modal
+=========================== */
 .modal {
     align-items: center;
     background: rgba(0,0,0,0.45);

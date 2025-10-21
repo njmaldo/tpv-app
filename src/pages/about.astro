@@ -1,0 +1,30 @@
+---
+import MainLayout from "@/layouts/MainLayout.astro";
+import HeroAbout from "@/components/hero/HeroAbout.astro";
+import History from "@/components/history/History.astro";
+import Valores from "@/components/valores/Valores.astro";
+import Cta from "@/components/cta/Cta.astro";
+
+---
+
+<MainLayout title="About Us | NX Cofee & Bread">
+    <main class="page-layout">
+        <HeroAbout />
+        <History />
+        <Valores />
+        <Cta />
+    </main>
+</MainLayout>
+
+<style>
+    .page-layout {
+		display: flex;
+		flex-direction: column;
+		gap: clamp(3rem, 5vw, 7rem);
+		width: 100%;
+		max-width: 100%;
+		padding-inline: 0;
+		margin-inline: 0;
+		/* padding-top: clamp(3rem, 5vh, 7rem); */
+	}
+</style>

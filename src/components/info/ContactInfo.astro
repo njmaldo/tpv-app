@@ -1,0 +1,45 @@
+<section class="contact-info">
+    <div class="info-item">
+        <h3>📍 Visit Us</h3>
+        <p>123 Baker Street, Koronadal City</p>
+        <a href="https://maps.google.com" target="_blank" class="info-link"
+            >View on Google Maps</a
+        >
+    </div>
+    <div class="info-item">
+        <h3>📞 Call Us</h3>
+        <p>Cher: <a href="tel:+639955129884">+63 995 512 9884</a></p>
+        <p><a href="tel:+63123456789">+63 995 512 9884</a></p>
+    </div>
+    <div class="info-item">
+        <h3>⏰ Opening Hours</h3>
+        <p>Tues–Sun: 5:00 AM – 8:00 PM</p>
+        <p>Monday: Closed</p>
+    </div>
+</section>
+
+<style>
+    .contact-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        padding-inline: 1rem;
+        text-align: center;
+    }
+    .info-item{
+        background: #fff;
+        border-radius: 5px;
+        padding: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .info-item h3 {
+        margin-bottom: 0.5rem;
+    }
+
+    .info-link {
+        color: #22C55E;
+        text-decoration: none;
+        font-weight: 500;
+    }
+</style>

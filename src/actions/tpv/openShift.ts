@@ -6,7 +6,7 @@ import tursoClient from "@/lib/turso";
 
 export const openShift = defineAction({
   input: z.object({
-    shift: z.enum(["morning", "evening"]),
+    shift: z.enum(["morning","afternoon", "evening"]),
     userId: z.string(),
     declaredCash: z.number().default(0),
     notes: z.string().optional(),

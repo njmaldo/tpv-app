@@ -1,0 +1,216 @@
+---
+
+---
+<!-- Ícono del carrito -->
+<button id="cart-toggle" class="cart-toggle" aria-label="Open cart">
+ 🛒
+  <span id="cart-count" class="cart-count">0</span>
+</button>
+<aside class="cart hidden " id="cart-panel">
+
+  <ul id="cart-items" class="cart-items"></ul>
+
+  <div class="cart-footer">
+    <p class="cart-total">Total: <span id="cart-total">₱ 0.00</span></p>
+    <div class="cart-buttons">
+      <button id="clear-cart" class="clear-cart">Clear</button>
+      <button id="send-order" class="send-order">Send Order</button>
+    </div>
+    <p id="order-status" class="order-status"></p>
+  </div>
+</aside>
+
+
+<script is:inline>
+  const cartKey = "nx_cart";
+  const cartItemsEl = document.getElementById("cart-items");
+  const cartTotalEl = document.getElementById("cart-total");
+  const statusEl = document.getElementById("order-status");
+  const cartToggle = document.getElementById("cart-toggle");
+  const cartPanel = document.getElementById("cart-panel");
+  const cartCountEl = document.getElementById("cart-count");
+
+  let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+
+  // Mostrar / ocultar carrito solo si hay productos
+  cartToggle.addEventListener("click", () => {
+    if (cart.length > 0) {
+      cartPanel.classList.toggle("active");
+    } else {
+      // pequeño feedback opcional
+      cartToggle.classList.add("shake");
+      setTimeout(() => cartToggle.classList.remove("shake"), 500);
+    }
+  });
+  //  Actualiza el badge flotante (🛒)
+  function updateCartBadge() {
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    cartCountEl.textContent = totalItems;
+    cartCountEl.style.display = totalItems > 0 ? "inline-block" : "none";
+    cartToggle.setAttribute("data-count", totalItems); 
+    if (totalItems > 0) {
+      cartToggle.classList.add("visible");
+    } else {
+      cartToggle.classList.remove("visible");
+    }
+      // Si no hay productos, cerrar el panel automáticamente
+  if (totalItems === 0) {
+    cartPanel.classList.remove("active");
+  }
+  }
+
+  //  Renderiza el carrito
+  function renderCart() {
+    cartItemsEl.innerHTML = "";
+
+    // Datos del cliente
+    const customerInfo = document.createElement("div");
+    customerInfo.classList.add("customer-info");
+    customerInfo.innerHTML = `
+      <h3>Your Order</h3>
+      <label>
+        Name:
+        <input type="text" id="customer-name" placeholder="Your name" required />
+      </label>
+      <label>
+        Email:
+        <input type="email" id="customer-email" placeholder="your@email.com" required />
+      </label>
+      <div class="cart-divider"></div>
+    `;
+    cartItemsEl.appendChild(customerInfo);
+
+    let total = 0;
+
+    if (cart.length === 0) {
+      cartItemsEl.innerHTML = "<li class='empty'>Your cart is empty.</li>";
+      cartTotalEl.textContent = "₱ 0.00";
+      updateCartBadge();
+      return;
+    }
+
+    cart.forEach((item, index) => {
+      const li = document.createElement("li");
+      li.innerHTML = `
+       <div class="cart-row">
+            <div class="cart-info">
+              <span class="cart-name">${item.name}</span>
+              <small class="cart-price">₱ ${item.price.toFixed(2)}</small>
+            </div>
+            <input
+              type="number"
+              class="quantity-input"
+              data-id="${item.id}"
+              value="${item.quantity}"
+              data-index="${index}"
+              min="1"
+              aria-label="Cantidad de ${item.name}"
+            />
+            <button class="remove-item" data-index="${index}">&times;</button>
+        </div>
+      `;
+      cartItemsEl.appendChild(li);
+      total += item.price * item.quantity;
+    });
+
+    cartTotalEl.textContent = `₱ ${total.toLocaleString("en-PH", { minimumFractionDigits: 2 })}`;
+    updateCartBadge();
+  }
+
+  //  Agregar producto
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".add-to-cart-button");
+    if (!btn) return;
+
+    const name = btn.getAttribute("data-name");
+    const price = parseFloat(btn.getAttribute("data-price"));
+    const image = btn.getAttribute("data-image");
+    if (!name || isNaN(price)) return;
+
+    const existingItem = cart.find((item) => item.name === name);
+    if (existingItem) {
+      existingItem.quantity += 1;
+    } else {
+      cart.push({ name, price, image, quantity: 1 });
+    }
+
+    localStorage.setItem(cartKey, JSON.stringify(cart));
+    renderCart();
+  });
+
+  //  Cambiar cantidad
+  document.addEventListener("input", (e) => {
+    const input = e.target.closest(".quantity-input");
+    if (!input) return;
+
+    const index = parseInt(input.dataset.index, 10);
+    const newQuantity = parseInt(input.value, 10);
+    if (isNaN(newQuantity) || newQuantity < 1) return;
+
+    cart[index].quantity = newQuantity;
+    localStorage.setItem(cartKey, JSON.stringify(cart));
+    renderCart();
+  });
+
+  //  Eliminar producto
+  cartItemsEl.addEventListener("click", (e) => {
+    if (e.target.classList.contains("remove-item")) {
+      const i = e.target.getAttribute("data-index");
+      cart.splice(i, 1);
+      localStorage.setItem(cartKey, JSON.stringify(cart));
+      renderCart();
+    }
+  });
+
+  //  Vaciar carrito
+  document.getElementById("clear-cart").addEventListener("click", () => {
+    cart = [];
+    localStorage.removeItem(cartKey);
+    renderCart();
+  });
+
+  //  Enviar pedido
+  document.querySelector("#send-order").addEventListener("click", async () => {
+    const name = document.querySelector("#customer-name").value.trim();
+    const email = document.querySelector("#customer-email").value.trim();
+    const customer = { name, email };
+
+    if (cart.length === 0) {
+      statusEl.textContent = "Your cart is empty.";
+      return;
+    }
+
+    statusEl.textContent = "Sending order...";
+    statusEl.style.color = "#555";
+
+    try {
+      const total = cart.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
+
+      const res = await fetch("/api/sendOrder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cart, total, customer }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        statusEl.textContent = "✅ Order sent successfully!";
+        statusEl.style.color = "green";
+        cart = [];
+        localStorage.removeItem(cartKey);
+        renderCart();
+      } else {
+        throw new Error(data.error || "Unknown error");
+      }
+    } catch (err) {
+      console.error(err);
+      statusEl.textContent = "❌ Error sending order. Please try again.";
+      statusEl.style.color = "red";
+    }
+  });
+
+  //  Inicialización
+  renderCart();
+  updateCartBadge();
+</script>
+

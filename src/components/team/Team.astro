@@ -1,0 +1,45 @@
+<section class="team">
+  <h2>The People of NX Coffee & Bread</h2>
+  <div class="team-grid">
+    <div class="member">
+      <img src="/images/team-ana.jpg" alt="Ana, jefa pastelera" />
+      <h3>Ana</h3>
+      <p>Jefa pastelera y reina de las medialunas.</p>
+    </div>
+    <div class="member">
+      <img src="/images/team-mario.jpg" alt="Mario, barista" />
+      <h3>Mario</h3>
+      <p>Barista apasionado por el café de origen.</p>
+    </div>
+  </div>
+</section>
+
+<style>
+.team {
+  padding: 5rem 2rem;
+  text-align: center;
+}
+.team h2 {
+    font-size: clamp(2.2rem, 4vw, 3.5rem);;
+  background: linear-gradient(90deg, #1F2A44 0%, #272a30 100%);
+  -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  margin-bottom: 3rem;
+}
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 2rem;
+}
+.member img {
+  border-radius: 50%;
+  width: 160px;
+  height: 160px;
+  object-fit: cover;
+  margin-bottom: 1rem;
+}
+.member h3 {
+  color: #5a4634;
+}
+</style>

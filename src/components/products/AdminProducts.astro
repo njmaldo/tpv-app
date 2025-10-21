@@ -146,31 +146,20 @@ const lowStock = await getLowStock();
                 {p.isActive ? "✅" : "❌"}
               </td>
               <td>
-                <div class="dropdown">
+                <div class="dropdown" id="dropdown-products">
                   <button class="btn-icon" type="button" aria-haspopup="true">⋮</button>
-                  <div class="dropdown-menu hidden" role="menu">
-                    <a
-                      href={`${Astro.url.pathname}?edit=${p.id}`}
-                      class="dropdown-item"
-                    >
+                  <div class="dropdown-menu" id="menu-products" role="menu">
+                    <a href={`${Astro.url.pathname}?edit=${p.id}`} class="dropdown-item" >
                       Edit
                     </a>
                     <form action={actions.toggleActive} method="post">
                       <input type="hidden" name="id" value={p.id} />
-                      <input
-                        type="hidden"
-                        name="isActive"
-                        value={p.isActive ? "0" : "1"}
-                      />
+                      <input type="hidden" name="isActive" value={p.isActive ? "0" : "1"} />
                       <button type="submit" class="dropdown-item">
                         {p.isActive ? "Deactivate" : "Activate"}
                       </button>
                     </form>
-                    <form
-                      action={actions.deleteBakeryItem}
-                      method="post"
-                      onsubmit="return confirm('¿Delete this product?')"
-                    >
+                    <form action={actions.deleteBakeryItem} method="post" onsubmit="return confirm('¿Delete this product?')" >
                       <input type="hidden" name="id" value={p.id} />
                       <button type="submit" class="btn dropdown-item danger">
                         Delete
@@ -228,34 +217,23 @@ const lowStock = await getLowStock();
   gap: 0.5rem;
 }
 @media (max-width: 1024px) {
-  /* Header con más espacio vertical */
   .dashboard-header {
-    /* flex-wrap: wrap; */
     gap: 1rem;
   }
+  
 @media (max-width: 820px) {
-  .dashboard-header {
-    /* flex-direction: column;
-    align-items: stretch; */
-  }
 
   .btn-primary {
     padding: 0.1px 0.1px;
   }
 
   .dashboard-header .header-actions {
-    /* justify-content: center;
-    flex-wrap: wrap; */
     gap: 0.5rem;
   }
 
-  /* Cards siguen en 2 columnas, pero centradas */
   .dashboard-cards {
     grid-template-columns: repeat(2, minmax(160px, 1fr));
-    /* justify-items: center; */
   }
-
-  /* Tabla ocupa todo el ancho con scroll si es necesario */
   .table-responsive table {
     width: 100%;
     min-width: 600px;
@@ -265,31 +243,26 @@ const lowStock = await getLowStock();
   }
 }
 @media (max-width: 640px) {
-  /* Header apilado */
+
   .dashboard-header {
     flex-direction: column;
     align-items: stretch;
     gap: 0.75rem;
   }
 
-  /* Input de búsqueda full width */
   .dashboard-header .search-input {
     width: 100%;
   }
 
-  /* Botones apilados o en fila si entran */
   .dashboard-header .header-actions {
     display: flex;
-    /* flex-direction: column; */
     gap: 0.5rem;
   }
-
-  /* Cards en 2 columnas (2x2) */
   .dashboard-cards {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.75rem;
   }
-  /* Cards: 2 columnas en lugar de 4 */
+
   .dashboard-cards {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -303,7 +276,6 @@ const lowStock = await getLowStock();
     }
   }
 
-  /* Tabla: scroll horizontal y tamaño mínimo */
   .table-responsive {
     overflow-x: auto;
   }
@@ -340,24 +312,32 @@ const lowStock = await getLowStock();
     };
   }
   // Lógica para el dropdown
+    
   document.addEventListener("click", (e) => {
     const toggle = e.target.closest(".btn-icon");
+
     if (toggle) {
-      const wrapper = toggle.closest(".dropdown");
-      const menu = wrapper.querySelector(".dropdown-menu");
+      const dropdown = toggle.closest(".dropdown");
+      const menu = dropdown.querySelector(".dropdown-menu");
+
+      // Cierra todos los demás menús abiertos
       document.querySelectorAll(".dropdown-menu").forEach((m) => {
-        if (m !== menu) m.classList.add("hidden");
+        if (m !== menu) m.style.display = "none";
       });
-      menu.classList.toggle("hidden");
+
+      // Alterna el menú actual
+      menu.style.display = menu.style.display === "block" ? "none" : "block";
       return;
     }
+
+    // Si clickeó fuera de cualquier dropdown → cierra todos
     if (!e.target.closest(".dropdown")) {
-      document
-        .querySelectorAll(".dropdown-menu")
-        .forEach((m) => m.classList.add("hidden"));
+      document.querySelectorAll(".dropdown-menu").forEach((m) => {
+        m.style.display = "none";
+      });
     }
   });
-
+  
   // Cerrar modal con la tecla Esc
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {

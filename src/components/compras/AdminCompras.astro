@@ -536,6 +536,7 @@ const topSuppliers = await  getTopSuppliers();
       menu.style.display = menu.style.display === "block" ? "none" : "block";
     }
   });
+  
  function handleEditClick(btn) {
   const raw = btn.dataset.purchase;
   const purchase = JSON.parse(decodeURIComponent(raw));
