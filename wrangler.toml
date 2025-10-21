@@ -1,0 +1,7 @@
+name = "tpv-app"
+main = "dist/_worker.js"
+compatibility_date = "2024-10-21"
+
+kv_namespaces = [
+  { binding = "SESSION", id = "62812a096852406f858f311e3533b0d4" }
+]
