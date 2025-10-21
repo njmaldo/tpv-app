@@ -1,4 +1,3 @@
-"use server";
 
 import { db, eq, User } from "astro:db";
 
