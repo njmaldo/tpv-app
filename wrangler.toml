@@ -2,7 +2,6 @@
 name = "tpv-app"
 main = "dist/_worker.js"
 compatibility_date = "2024-10-21"
-pages_build_output_dir = "dist"
 
 kv_namespaces = [
   { binding = "SESSION", id = "62812a096852406f8511e3533b0d4" }
