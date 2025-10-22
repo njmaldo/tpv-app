@@ -2,7 +2,6 @@
 name = "tpv-app"
 main = "dist/_worker.js"
 compatibility_date = "2024-10-21"
-output = "server"
 pages_build_output_dir = "dist"
 
 kv_namespaces = [
