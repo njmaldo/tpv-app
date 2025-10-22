@@ -1,11 +1,8 @@
-
 name = "tpv-app"
 main = "dist/_worker.js"
-compatibility_date = "2024-10-21"
+compatibility_date = "2024-10-22"
 
-kv_namespaces = [
-  { binding = "SESSION", id = "62812a096852406f8511e3533b0d4" }
+# La sección compatibility_flags ahora DEBE ser un array (lista) de strings.
+compatibility_flags = [
+    "nodejs_compat"
 ]
-
-compatibility_flags = ["nodejs_compat"]
-
