@@ -1,24 +1,24 @@
-import { createClient } from '@libsql/client';
+// import { createClient } from '@libsql/client/web';
 
 
 // const tursoClient = createClient({
 //   url: import.meta.env.TURSO_DATABASE_URL as string,
 //   authToken: import.meta.env.TURSO_AUTH_TOKEN as string,
+
 // });
 
 // export default tursoClient;
 
+import { createClient } from "@libsql/client/web";
 
-const url = import.meta.env.TURSO_DATABASE_URL;
-const token = import.meta.env.TURSO_AUTH_TOKEN;
+const url =
+  import.meta.env.LIBSQL_DB_URL ?? process.env.LIBSQL_DB_URL;
+const authToken =
+  import.meta.env.LIBSQL_DB_AUTH_TOKEN ?? process.env.LIBSQL_DB_AUTH_TOKEN;
 
-// Solo para depurar localmente (NO subas esto a producción)
-console.log("🔍 TURSO_DATABASE_URL:", JSON.stringify(url));
-console.log("🔍 TURSO_AUTH_TOKEN:", token ? "(token presente)" : "❌ vacío");
-
-const tursoClient = createClient({
-  url,
-  authToken: token,
+export const tursoClient = createClient({
+  url: url?.trim(),
+  authToken: authToken?.trim(),
 });
 
 export default tursoClient;

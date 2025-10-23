@@ -1,8 +1,0 @@
-name = "tpv-app"
-main = "dist/_worker.js"
-compatibility_date = "2024-10-22"
-
-# La sección compatibility_flags ahora DEBE ser un array (lista) de strings.
-compatibility_flags = [
-    "nodejs_compat"
-]

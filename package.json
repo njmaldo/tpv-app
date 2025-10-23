@@ -9,13 +9,15 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^12.6.9",
     "@astrojs/db": "^0.18.0",
+    "@astrojs/vercel": "^8.2.11",
     "@auth/core": "^0.37.4",
+    "@libsql/client": "^0.15.15",
     "astro": "^5.14.1",
     "auth-astro": "^4.2.0",
     "bcryptjs": "^3.0.2",
     "dotenv": "^17.2.2",
+    "itty-router": "^5.0.22",
     "nanostores": "^1.0.1",
     "sweetalert2": "^11.22.2",
     "uuid": "^11.1.0"
