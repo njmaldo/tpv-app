@@ -5,15 +5,14 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build --remote",
-    "preview": "astro preview",
-    "astro": "astro"
+    "preview": "astro preview"
   },
   "dependencies": {
+    "astro": "^5.14.1",
     "@astrojs/db": "^0.18.0",
     "@astrojs/vercel": "^8.2.11",
     "@auth/core": "^0.37.4",
     "@libsql/client": "^0.15.15",
-    "astro": "^5.14.1",
     "auth-astro": "^4.2.0",
     "bcryptjs": "^3.0.2",
     "dotenv": "^17.2.2",
@@ -24,5 +23,8 @@
   },
   "devDependencies": {
     "tsx": "^4.20.3"
+  },
+  "engines": {
+    "node": ">=18.17.0"
   }
 }
