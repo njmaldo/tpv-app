@@ -11,14 +11,19 @@
 
 import { createClient } from "@libsql/client/web";
 
-const url =
-  import.meta.env.LIBSQL_DB_URL ?? process.env.LIBSQL_DB_URL;
-const authToken =
-  import.meta.env.LIBSQL_DB_AUTH_TOKEN ?? process.env.LIBSQL_DB_AUTH_TOKEN;
+const url = import.meta.env.TURSO_DATABASE_URL;
+const authToken = import.meta.env.TURSO_AUTH_TOKEN;
+
+if (!url) {
+  throw new Error("LIBSQL_DB_URL no está configurada.");
+}
+if (!authToken) {
+  throw new Error("LIBSQL_DB_AUTH_TOKEN no está configurada.");
+}
 
 export const tursoClient = createClient({
-  url: url?.trim(),
-  authToken: authToken?.trim(),
+  url: url,
+  authToken: authToken,
 });
 
 export default tursoClient;

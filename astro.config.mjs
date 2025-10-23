@@ -15,7 +15,8 @@ export default defineConfig({
   },
   image: {
     service: {
-      entrypoint: 'astro/services/image/noop', // Desactiva el servicio en runtime
+      // entrypoint: 'astro/services/image/noop', 
+      entrypoint: 'astro/services/image/passthrough'
     },
   },
   output: 'server',
