@@ -2,7 +2,7 @@
 import { defineConfig } from 'astro/config';
 import db from '@astrojs/db';
 import auth from 'auth-astro';
-import vercel from "@astrojs/vercel/serverless";
+import netlify from '@astrojs/netlify';
 
 // https://astro.build/config
 export default defineConfig({
@@ -13,17 +13,19 @@ export default defineConfig({
       },
     },
   },
+
   image: {
     service: {
-      // entrypoint: 'astro/services/image/noop', 
-      entrypoint: 'astro/services/image/passthrough'
+      entrypoint: 'astro/services/image/noop', 
     },
   },
+
   output: 'server',
-  adapter: vercel({}),
+  adapter: netlify(),
+
   integrations: [
     db(), 
     auth(),
   ],
-  
+
 });
