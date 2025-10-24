@@ -2,7 +2,7 @@
 import { defineConfig } from 'astro/config';
 import db from '@astrojs/db';
 import auth from 'auth-astro';
-import netlify from '@astrojs/netlify';
+import netlify from '@astrojs/netlify/functions';
 
 // https://astro.build/config
 export default defineConfig({
@@ -21,7 +21,7 @@ export default defineConfig({
   },
 
   output: 'server',
-  adapter: netlify(),
+  adapter: netlify({}),
 
   integrations: [
     db(), 
