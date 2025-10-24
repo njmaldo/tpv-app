@@ -2,7 +2,7 @@ import { defineMiddleware } from "astro/middleware";
 import { getSession } from "auth-astro/server";
 
 // --- Rutas ---
-const PUBLIC_ROUTES = ["/", "/login", "/register"];
+const PUBLIC_ROUTES = ["/", "/login", "/register","/about","/contact"];
 const TPV_ROUTES = ["/tpv"];
 const ADMIN_PREFIX = "/admin";
 

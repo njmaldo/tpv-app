@@ -65,26 +65,52 @@ export default defineConfig({
 
   callbacks: {
     async signIn({ user, account, profile }) {
-      // Alta automática si viene de Google
-      if (account?.provider === "google" && user?.email) {
-        const [existingUser] = await db
-          .select()
-          .from(User)
-          .where(eq(User.email, user.email));
+  if (account?.provider === "google" && user?.email) {
+    const existing = await tursoClient.execute({
+      sql: "SELECT id FROM User WHERE email = ?",
+      args: [user.email],
+    });
 
-        if (!existingUser) {
-          await db.insert(User).values({
-            id: crypto.randomUUID(),
-            name: user.name ?? profile?.name ?? "",
-            email: user.email,
-            password: "",
-            roleId: "user",
-            emailVerified: new Date(),
-          });
-        }
-      }
-      return true;
-    },
+    if (!existing.rows || existing.rows.length === 0) {
+      await tursoClient.execute({
+        sql: `
+          INSERT INTO User (id, name, email, password, roleId, emailVerified)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `,
+        args: [
+          crypto.randomUUID(),
+          user.name ?? profile?.name ?? "",
+          user.email,
+          "",
+          "user",
+          new Date().toISOString(),
+        ],
+      });
+    }
+  }
+  return true;
+},
+
+    // async signIn({ user, account, profile }) {
+    //   if (account?.provider === "google" && user?.email) {
+    //     const [existingUser] = await db
+    //       .select()
+    //       .from(User)
+    //       .where(eq(User.email, user.email));
+
+    //     if (!existingUser) {
+    //       await db.insert(User).values({
+    //         id: crypto.randomUUID(),
+    //         name: user.name ?? profile?.name ?? "",
+    //         email: user.email,
+    //         password: "",
+    //         roleId: "user",
+    //         emailVerified: new Date(),
+    //       });
+    //     }
+    //   }
+    //   return true;
+    // },
 
     jwt({ token, user }) {
       if (user) {
