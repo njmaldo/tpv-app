@@ -13,10 +13,10 @@ const url = import.meta.env.TURSO_DATABASE_URL;
 const authToken = import.meta.env.TURSO_AUTH_TOKEN;
 
 if (!url) {
-  throw new Error("LIBSQL_DB_URL no está configurada.");
+  throw new Error("TURSO_DATABASE_URL no está configurada.");
 }
 if (!authToken) {
-  throw new Error("LIBSQL_DB_AUTH_TOKEN no está configurada.");
+  throw new Error("TURSO_AUTH_TOKEN no está configurado.");
 }
 
 export const tursoClient = createClient({
