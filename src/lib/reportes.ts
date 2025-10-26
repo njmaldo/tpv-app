@@ -1,6 +1,5 @@
 
 import tursoClient from "@/lib/turso";
-import { db } from "astro:db";
 
 // 📅 Ventas diarias
 export async function getDailySales() {

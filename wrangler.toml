@@ -1,0 +1,9 @@
+name = "tpv-app"
+main = "./dist/_worker.js"
+compatibility_date = "2025-10-24"
+compatibility_flags = ["nodejs_compat"]
+
+
+kv_namespaces = [
+  { binding = "APP_SESSIONS", id = "62812a096852406f858f311e3533b0d4" }
+]

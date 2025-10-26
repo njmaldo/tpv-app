@@ -9,6 +9,7 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/cloudflare": "^12.6.10",
     "@astrojs/netlify": "^6.6.0",
     "@auth/core": "^0.37.4",
     "@libsql/client": "^0.15.15",
